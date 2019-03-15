@@ -83,3 +83,5 @@ data = simfin.groupby('Ticker').apply(byTicker)
 
 # Save dataset output
 data.to_csv('data.csv', encoding='utf-8', index=False)
+
+:memoryview
