@@ -42,6 +42,7 @@ logger.info("Dataset rows: " + str(rows))
 
 # Temporarily make simfin dataset smaller for testing
 # simfin = simfin.query('Ticker == "A" | Ticker == "AAMC"')
+simfin = simfin.query('Ticker == "ACM"')
 
 
 # Process data by ticker
@@ -65,16 +66,22 @@ def byTicker(df):
     # Reduce to monthly by getting last info/row per month
     df = df.groupby(pd.Grouper(key='Date', freq='M')).tail(1)
 
-    # Add technical indicators
-    df.insert(4, column='MOM1MA', value=talib.MOM(np.array(df['Share Price Monthly Average']), 1))
-    df.insert(5, column='MOM2MA', value=talib.MOM(np.array(df['Share Price Monthly Average']), 2))
-    df.insert(6, column='MOM3MA', value=talib.MOM(np.array(df['Share Price Monthly Average']), 3))
-    df.insert(7, column='MOM6MA', value=talib.MOM(np.array(df['Share Price Monthly Average']), 6))
-    df.insert(8, column='MOM9MA', value=talib.MOM(np.array(df['Share Price Monthly Average']), 9))
-    df.insert(9, column='MOM12MA', value=talib.MOM(np.array(df['Share Price Monthly Average']), 12))
-
     # Remove rows with too many null values
     df = df.dropna(axis=0, thresh=15, subset=df.columns.to_list()[3:])
+
+    # Remove rows where Share Price Monthly Average is Null
+    df = df[df['Share Price Monthly Average'].notnull()]
+
+    # Add technical indicators
+    if len(df) >= 1:
+        df.insert(4, column='MOM1MA', value=talib.MOM(np.array(df['Share Price Monthly Average']), 1))
+        df.insert(5, column='MOM2MA', value=talib.MOM(np.array(df['Share Price Monthly Average']), 2))
+        df.insert(6, column='MOM3MA', value=talib.MOM(np.array(df['Share Price Monthly Average']), 3))
+        df.insert(7, column='MOM6MA', value=talib.MOM(np.array(df['Share Price Monthly Average']), 6))
+        df.insert(8, column='MOM9MA', value=talib.MOM(np.array(df['Share Price Monthly Average']), 9))
+        df.insert(9, column='MOM12MA', value=talib.MOM(np.array(df['Share Price Monthly Average']), 12))
+    else:
+        logger.info("WARNING - No rows: " + ticker)
 
     return df
 
@@ -84,4 +91,5 @@ data = simfin.groupby('Ticker').apply(byTicker)
 # Save dataset output
 data.to_csv('data.csv', encoding='utf-8', index=False)
 
-:memoryview
+
+
