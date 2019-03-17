@@ -46,9 +46,24 @@ logger.info("Dataset rows: " + str(rows))
 simfin = simfin.query('Ticker == "FLWS"')
 
 
-indicators = ['Revenues', 'COGS']
-df (TTM):
-df['Revenues'].rolling(12, min_periods=1).sum()
+
+def TTM(df, features):
+
+    def lastYearSum(series):
+        if len(series) <= 3:
+            return np.nan
+        else:
+            firstDate = df['Date'][series.head(1).index.item()]
+            lastDate = df['Date'][series.tail(1).index.item()]
+            if (lastDate - firstDate).days > 366:
+                return np.nan
+            else:
+                return series.sum()
+
+    for feature in features:
+        index = df.columns.get_loc(feature)
+        df.insert(index+1, column=feature + ' TTM', value=df[feature].rolling(4, min_periods=1).apply(lastYearSum, raw=False))
+    return df
 
 
 # Process data by ticker
@@ -82,14 +97,17 @@ def byTicker(df):
     df['Avg. Basic Shares Outstanding'] = df['Avg. Basic Shares Outstanding'].rolling(92, min_periods=1).apply(lambda x: x[x.last_valid_index()], raw=False)
     df['Avg. Diluted Shares Outstanding'] = df['Avg. Diluted Shares Outstanding'].rolling(92, min_periods=1).apply(lambda x: x[x.last_valid_index()], raw=False)
 
-    # Remove rows where column val is Null (Only rows with quarterly report published)
-    df = df[df['Revenues'].notnull()]
 
     # Remove rows with too many null values
     df = df.dropna(axis=0, thresh=15, subset=df.columns.to_list()[3:])
 
+    # Remove rows where feature is null
+    df = df[df['Revenues'].notnull()]
+
     # Trailing values
-    df['Revenues TTM'] = df['Revenues'].rolling(12, min_periods=1).sum()
+    features = ['Revenues', 'COGS']
+    df = TTM(df, features)
+    # df['Revenues TTM'] = df['Revenues'].rolling(12, min_periods=1).sum()
 
     return df
 
