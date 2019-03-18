@@ -13,7 +13,7 @@ try:
     os.chdir(dname)
 except NameError:
     import os
-    os.chdir('./data/fundamental/simfin')
+    os.chdir('d:/projects/quant/data/fundamental/simfin')
 
 
 # Classes from Simfin github

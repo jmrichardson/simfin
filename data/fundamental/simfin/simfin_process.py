@@ -12,7 +12,7 @@ try:
     os.chdir(dname)
 except NameError:
     import os
-    os.chdir('./data/fundamental/simfin')
+    os.chdir('d:/projects/quant/data/fundamental/simfin')
 
 # Set console display options for panda dataframes
 pd.options.display.max_rows = 100
@@ -56,6 +56,7 @@ logger.info("Dataset rows: " + str(rows))
 # simfin = simfin.query('Ticker == "A" | Ticker == "AAMC"')
 # simfin = simfin.query('Ticker == "FLWS"')
 # simfin = simfin.query('Ticker == "TSLA"')
+# simfin = simfin.query('Ticker == "ABR"')
 
 
 # Momentum
@@ -152,6 +153,11 @@ def byTicker(df):
     # Remove rows where feature is null (removes many rows)
     df = df[df['Revenues'].notnull()]
     df = df[df['Net Profit'].notnull()]
+
+    # Need at least 3 quarters
+    if len(df.index) <= 3:
+        logger.warning(" - Not enough history")
+        return None
 
     # Add a few more ratios
     df['Basic Earnings Per Share'] = df['Net Profit'] / df['Avg. Basic Shares Outstanding'] * 1000
