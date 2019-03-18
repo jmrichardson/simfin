@@ -55,7 +55,23 @@ logger.info("Dataset rows: " + str(rows))
 # Temporarily make simfin dataset smaller for testing
 # simfin = simfin.query('Ticker == "A" | Ticker == "AAMC"')
 # simfin = simfin.query('Ticker == "FLWS"')
-simfin = simfin.query('Ticker == "TSLA"')
+# simfin = simfin.query('Ticker == "TSLA"')
+
+
+# Momentum
+def mom(df, features):
+    for feature in features:
+        index = df.columns.get_loc(feature)
+        try:
+            df.insert(index+1, column=feature + ' Mom 6Q', value=talib.MOM(np.array(df[feature]), 6))
+            df.insert(index+1, column=feature + ' Mom 5Q', value=talib.MOM(np.array(df[feature]), 5))
+            df.insert(index+1, column=feature + ' Mom 4Q', value=talib.MOM(np.array(df[feature]), 4))
+            df.insert(index+1, column=feature + ' Mom 3Q', value=talib.MOM(np.array(df[feature]), 3))
+            df.insert(index+1, column=feature + ' Mom 2Q', value=talib.MOM(np.array(df[feature]), 2))
+            df.insert(index+1, column=feature + ' Mom 1Q', value=talib.MOM(np.array(df[feature]), 1))
+        except:
+            pass
+    return df
 
 
 # Calculate trailing twelve months
@@ -78,19 +94,26 @@ def TTM(df, features):
     return df
 
 
-def mom(df, features):
+# Calculate trailing 24 months
+def T24M(df, features):
+    def yearSum(series):
+        # Must have 8 quarters
+        if len(series) <= 7:
+            return np.nan
+        # Must be within a one year date range
+        else:
+            series = series.head(4)
+            firstDate = df['Date'][series.head(1).index.item()]
+            lastDate = df['Date'][series.tail(1).index.item()]
+            if (lastDate - firstDate).days > 370:
+                return np.nan
+            else:
+                return series.sum()
     for feature in features:
         index = df.columns.get_loc(feature)
-        try:
-            df.insert(index+1, column=feature + ' Mom 6Q', value=talib.MOM(np.array(df[feature]), 6))
-            df.insert(index+1, column=feature + ' Mom 5Q', value=talib.MOM(np.array(df[feature]), 5))
-            df.insert(index+1, column=feature + ' Mom 4Q', value=talib.MOM(np.array(df[feature]), 4))
-            df.insert(index+1, column=feature + ' Mom 3Q', value=talib.MOM(np.array(df[feature]), 3))
-            df.insert(index+1, column=feature + ' Mom 2Q', value=talib.MOM(np.array(df[feature]), 2))
-            df.insert(index+1, column=feature + ' Mom 1Q', value=talib.MOM(np.array(df[feature]), 1))
-        except:
-            pass
+        df.insert(index+1, column=feature + ' T24M', value=df[feature].rolling(8, min_periods=1).apply(yearSum, raw=False))
     return df
+
 
 
 # Process data by ticker
@@ -130,7 +153,7 @@ def byTicker(df):
     df = df[df['Revenues'].notnull()]
     df = df[df['Net Profit'].notnull()]
 
-    # Add ratios
+    # Add a few more ratios
     df['Basic Earnings Per Share'] = df['Net Profit'] / df['Avg. Basic Shares Outstanding'] * 1000
     df['Common Earnings Per Share'] = df['Net Profit'] / df['Common Shares Outstanding'] * 1000
     df['Diluted Earnings Per Share'] = df['Net Profit'] / df['Avg. Diluted Shares Outstanding'] * 1000
@@ -138,14 +161,19 @@ def byTicker(df):
     df['Common PE'] = df['Share Price'] / df['Common Earnings Per Share']
     df['Diluted PE'] = df['Share Price'] / df['Diluted Earnings Per Share']
 
+    # Scale all fundamental features by last Market Cap (not by row to show relative change in values)
+    marketCap = df['Market Capitalisation'].tail(1).item()
+    df.loc[:, 'Common Shares Outstanding':'Diluted PE'] = df.loc[:, 'Common Shares Outstanding':'Diluted PE'] / marketCap
+
     # Remove rows with too many null values
-    df = df.dropna(axis=0, thresh=15, subset=df.columns.to_list()[3:])
+    # df = df.dropna(axis=0, thresh=15, subset=df.columns.to_list()[3:])
 
     # Trailing twelve month on key features
-    # df = TTM(df, features)
+    df = T24M(df, features)
+    df = TTM(df, features)
 
     # Momentum on key features
-    # df = mom(df, features)
+    df = mom(df, features)
 
     return df
 
@@ -154,6 +182,11 @@ data = simfin.groupby('Ticker').apply(byTicker)
 
 # Save dataset output
 data.to_csv('data' + str(random.randint(1, 100000)) + '.csv', encoding='utf-8', index=False)
+
+logger.info("Saving dataframe ...")
+with open('quarterly_dataset.pickle', 'wb') as handle:
+    pickle.dump(data, handle)
+
 
 
 
