@@ -13,7 +13,7 @@ try:
     os.chdir(dname)
 except NameError:
     import os
-    os.chdir('d:/projects/quant/quarterly/data/source/simfin')
+    os.chdir('d:/projects/quant/quarterly/source/simfin')
 
 
 # Classes from Simfin github
@@ -252,7 +252,7 @@ for col in  simfin.columns[2:]:
     simfin[col] = pd.to_numeric(simfin[col], errors='coerce')
 
 # First 200 rows to csv file for viewing
-simfin.head(20000).to_csv('tmp/simfin_dataset.csv', encoding='utf-8', index=False)
+# simfin.head(20000).to_csv('tmp/simfin_dataset.csv', encoding='utf-8', index=False)
 
 # Save DataFrame to pickle file for later use
 logger.info("Saving dataframe ...")

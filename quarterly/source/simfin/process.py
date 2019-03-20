@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from loguru import logger
 import random
+from tsfresh import extract_relevant_features
 
 # Set current directory
 try:
@@ -57,6 +58,10 @@ logger.info("Dataset rows: " + str(rows))
 simfin = simfin.query('Ticker == "FLWS"')
 # simfin = simfin.query('Ticker == "TSLA"')
 # simfin = simfin.query('Ticker == "ABR"')
+
+
+
+
 
 
 # Momentum
@@ -173,6 +178,13 @@ def byTicker(df):
     df['Common PE'] = df['Share Price'] / df['Common Earnings Per Share']
     df['Diluted PE'] = df['Share Price'] / df['Diluted Earnings Per Share']
 
+    # Trailing twelve month on key features
+    df = T24M(df, features)
+    df = TTM(df, features)
+
+    # Momentum on key features
+    df = mom(df, features)
+
     # Add lagged target for features
     df = target(df, ['SPQA'] + features)
 
@@ -181,22 +193,27 @@ def byTicker(df):
 
     # Scale all fundamental features by last Market Cap (not by row to show relative change in values)
     marketCap = df['Market Capitalisation'].tail(1).item()
-    df.loc[:, 'Common Shares Outstanding':'Diluted PE'] = df.loc[:, 'Common Shares Outstanding':'Diluted PE'] / marketCap
+    df.loc[:, 'Common Shares Outstanding':'Diluted PE T24M'] = df.loc[:, 'Common Shares Outstanding':'Diluted PE T24M'] / marketCap
 
     # Remove rows with too many null values
     # df = df.dropna(axis=0, thresh=15, subset=df.columns.to_list()[3:])
-
-    # Trailing twelve month on key features
-    df = T24M(df, features)
-    df = TTM(df, features)
-
-    # Momentum on key features
-    df = mom(df, features)
 
     return df
 
 logger.info("Grouping SimFin data by ticker...")
 data = simfin.groupby('Ticker').apply(byTicker)
+
+
+from tsfresh import extract_features, select_features
+from tsfresh.utilities.dataframe_functions import impute
+df = pd.DataFrame(data.iloc[:,0]).join(impute(data.loc[:, 'Share Price':'Diluted PE T24M']))
+tf = extract_features(df, column_id='Date')
+# tf = impute(tf)
+
+
+
+
+
 
 # Save dataset output
 data.to_csv('data' + str(random.randint(1, 100000)) + '.csv', encoding='utf-8', index=False)
