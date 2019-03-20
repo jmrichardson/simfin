@@ -12,7 +12,7 @@ try:
     os.chdir(dname)
 except NameError:
     import os
-    os.chdir('d:/projects/quant/data/fundamental/simfin')
+    os.chdir('d:/projects/quant/quarterly/source/simfin')
 
 # Set console display options for panda dataframes
 pd.options.display.max_rows = 100
@@ -32,7 +32,7 @@ features = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'EBITDA', 'Net Profit',
 
 # Load SimFin dataset
 logger.info("Loading Simfin dataset ...")
-with open('simfin_dataset.pickle', 'rb') as handle:
+with open('data_extract.pickle', 'rb') as handle:
     simfin = pickle.load(handle)
 
 cols = len(simfin.columns)
@@ -54,7 +54,7 @@ logger.info("Dataset rows: " + str(rows))
 
 # Temporarily make simfin dataset smaller for testing
 # simfin = simfin.query('Ticker == "A" | Ticker == "AAMC"')
-# simfin = simfin.query('Ticker == "FLWS"')
+simfin = simfin.query('Ticker == "FLWS"')
 # simfin = simfin.query('Ticker == "TSLA"')
 # simfin = simfin.query('Ticker == "ABR"')
 
@@ -116,6 +116,11 @@ def T24M(df, features):
     return df
 
 
+# lag prediction targets
+def target(df, features):
+    for feature in features:
+        df['Target_y ' + feature] = (df[feature].shift(-1) - df[feature])/df[feature]
+    return df[:-1]
 
 # Process data by ticker
 def byTicker(df):
@@ -130,16 +135,17 @@ def byTicker(df):
     df['Share Price'] = df['Share Price'].ffill()
 
     # Average share prices for last 30 days
-    df.insert(3, column='SPMA', value=df['Share Price'].rolling(30, min_periods=1).mean())
+    df.insert(3, column='SPQA', value=df['Share Price'].rolling(90, min_periods=1).mean())
+    df.insert(4, column='SPMA', value=df['Share Price'].rolling(30, min_periods=1).mean())
 
     # Momentum on SPMA
     try:
-        df.insert(4, column='SPMA Mom 1M', value=talib.MOM(np.array(df['SPMA']), 30))
-        df.insert(5, column='SPMA Mom 2M', value=talib.MOM(np.array(df['SPMA']), 60))
-        df.insert(6, column='SPMA Mom 3M', value=talib.MOM(np.array(df['SPMA']), 90))
-        df.insert(7, column='SPMA Mom 6M', value=talib.MOM(np.array(df['SPMA']), 180))
-        df.insert(8, column='SPMA Mom 9M', value=talib.MOM(np.array(df['SPMA']), 270))
-        df.insert(9, column='SPMA Mom 12M', value=talib.MOM(np.array(df['SPMA']), 360))
+        df.insert(5, column='SPMA Mom 1M', value=talib.MOM(np.array(df['SPMA']), 30))
+        df.insert(6, column='SPMA Mom 2M', value=talib.MOM(np.array(df['SPMA']), 60))
+        df.insert(7, column='SPMA Mom 3M', value=talib.MOM(np.array(df['SPMA']), 90))
+        df.insert(8, column='SPMA Mom 6M', value=talib.MOM(np.array(df['SPMA']), 180))
+        df.insert(9, column='SPMA Mom 9M', value=talib.MOM(np.array(df['SPMA']), 270))
+        df.insert(10, column='SPMA Mom 12M', value=talib.MOM(np.array(df['SPMA']), 360))
     except:
         pass
 
@@ -167,6 +173,12 @@ def byTicker(df):
     df['Common PE'] = df['Share Price'] / df['Common Earnings Per Share']
     df['Diluted PE'] = df['Share Price'] / df['Diluted Earnings Per Share']
 
+    # Add lagged target for features
+    df = target(df, ['SPQA'] + features)
+
+    # Add value target if percent gain is greater than x percent
+    df['Target_y Value'] = np.where(df['Target_y SPQA'] >= .05, 1, 0)
+
     # Scale all fundamental features by last Market Cap (not by row to show relative change in values)
     marketCap = df['Market Capitalisation'].tail(1).item()
     df.loc[:, 'Common Shares Outstanding':'Diluted PE'] = df.loc[:, 'Common Shares Outstanding':'Diluted PE'] / marketCap
@@ -190,7 +202,7 @@ data = simfin.groupby('Ticker').apply(byTicker)
 data.to_csv('data' + str(random.randint(1, 100000)) + '.csv', encoding='utf-8', index=False)
 
 logger.info("Saving dataframe ...")
-with open('quarterly_dataset.pickle', 'wb') as handle:
+with open('data_process.pickle', 'wb') as handle:
     pickle.dump(data, handle)
 
 

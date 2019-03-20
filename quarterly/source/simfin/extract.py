@@ -13,7 +13,7 @@ try:
     os.chdir(dname)
 except NameError:
     import os
-    os.chdir('d:/projects/quant/data/fundamental/simfin')
+    os.chdir('d:/projects/quant/quarterly/data/source/simfin')
 
 
 # Classes from Simfin github
@@ -256,6 +256,6 @@ simfin.head(20000).to_csv('tmp/simfin_dataset.csv', encoding='utf-8', index=Fals
 
 # Save DataFrame to pickle file for later use
 logger.info("Saving dataframe ...")
-with open('simfin_dataset.pickle', 'wb') as handle:
+with open('data_extract.pickle', 'wb') as handle:
     pickle.dump(simfin, handle)
 

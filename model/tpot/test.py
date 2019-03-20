@@ -1,6 +1,8 @@
 from tpot import TPOTClassifier
 from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split
+import pickle
+from loguru import logger
 
 # Set current directory
 try:
@@ -10,6 +12,13 @@ try:
 except NameError:
     import os
     os.chdir('d:/projects/quant/model/tpot')
+
+# Load dataset
+logger.info("Loading dataset ...")
+with open('../../data/fundamental/simfin/quarterly_dataset.pickle', 'rb') as handle:
+    data = pickle.load(handle)
+
+#
 
 digits = load_digits()
 X_train, X_test, y_train, y_test = train_test_split(digits.data, digits.target,
