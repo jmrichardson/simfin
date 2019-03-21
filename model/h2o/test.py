@@ -33,7 +33,7 @@ x.drop("volume", axis=1).plot(figsize=(15, 6))
 
 
 
-df_shift, y = make_forecasting_frame(x["high"], kind="price", max_timeshift=20, rolling_direction=1)
+df_shift, y = make_forecasting_frame(x, kind="price", max_timeshift=20, rolling_direction=1)
 
 X = extract_features(df_shift, column_id="id", column_sort="time", column_value="value", impute_function=impute,
                      show_warnings=False)

@@ -4,7 +4,8 @@ import pandas as pd
 import numpy as np
 from loguru import logger
 import random
-from tsfresh import extract_relevant_features
+from tsfresh import extract_features, select_features, extract_relevant_features
+from tsfresh.utilities.dataframe_functions import impute
 
 # Set current directory
 try:
@@ -54,34 +55,31 @@ rows = len(simfin)
 logger.info("Dataset rows: " + str(rows))
 
 # Temporarily make simfin dataset smaller for testing
-# simfin = simfin.query('Ticker == "A" | Ticker == "AAMC"')
-simfin = simfin.query('Ticker == "FLWS"')
+# simfin = simfin.query('Ticker == "A" | Ticker == "AAMC" | Ticker == "FLWS"')
+# simfin = simfin.query('Ticker == "FLWS"')
 # simfin = simfin.query('Ticker == "TSLA"')
 # simfin = simfin.query('Ticker == "ABR"')
-
-
-
-
+simfin = simfin.head(500000)
 
 
 # Momentum
-def mom(df, features):
+def mom(df):
     for feature in features:
         index = df.columns.get_loc(feature)
         try:
-            df.insert(index+1, column=feature + ' Mom 6Q', value=talib.MOM(np.array(df[feature]), 6))
-            df.insert(index+1, column=feature + ' Mom 5Q', value=talib.MOM(np.array(df[feature]), 5))
-            df.insert(index+1, column=feature + ' Mom 4Q', value=talib.MOM(np.array(df[feature]), 4))
-            df.insert(index+1, column=feature + ' Mom 3Q', value=talib.MOM(np.array(df[feature]), 3))
-            df.insert(index+1, column=feature + ' Mom 2Q', value=talib.MOM(np.array(df[feature]), 2))
-            df.insert(index+1, column=feature + ' Mom 1Q', value=talib.MOM(np.array(df[feature]), 1))
+            df[feature + ' Mom 6Q'] = talib.MOM(np.array(df[feature]), 6)
+            df[feature + ' Mom 5Q'] = talib.MOM(np.array(df[feature]), 5)
+            df[feature + ' Mom 4Q'] = talib.MOM(np.array(df[feature]), 4)
+            df[feature + ' Mom 3Q'] = talib.MOM(np.array(df[feature]), 3)
+            df[feature + ' Mom 2Q'] = talib.MOM(np.array(df[feature]), 2)
+            df[feature + ' Mom 1Q'] = talib.MOM(np.array(df[feature]), 1)
         except:
             pass
     return df
 
 
 # Calculate trailing twelve months
-def TTM(df, features):
+def TTM(df):
     def lastYearSum(series):
         # Must have 4 quarters
         if len(series) <= 3:
@@ -95,13 +93,14 @@ def TTM(df, features):
             else:
                 return series.sum()
     for feature in features:
-        index = df.columns.get_loc(feature)
-        df.insert(index+1, column=feature + ' TTM', value=df[feature].rolling(4, min_periods=1).apply(lastYearSum, raw=False))
+        # index = df.columns.get_loc(feature)
+        # df.insert(index+1, column=feature + ' TTM', value=df[feature].rolling(4, min_periods=1).apply(lastYearSum, raw=False))
+        df[feature + ' TTM'] = df[feature].rolling(4, min_periods=1).apply(lastYearSum, raw=False)
     return df
 
 
 # Calculate trailing 24 months
-def T24M(df, features):
+def T24M(df):
     def yearSum(series):
         # Must have 8 quarters
         if len(series) <= 7:
@@ -116,8 +115,9 @@ def T24M(df, features):
             else:
                 return series.sum()
     for feature in features:
-        index = df.columns.get_loc(feature)
-        df.insert(index+1, column=feature + ' T24M', value=df[feature].rolling(8, min_periods=1).apply(yearSum, raw=False))
+        # index = df.columns.get_loc(feature)
+        # df.insert(index+1, column=feature + ' T24M', value=df[feature].rolling(8, min_periods=1).apply(yearSum, raw=False))
+        df[feature + ' T24M'] = df[feature].rolling(8, min_periods=1).apply(yearSum, raw=False)
     return df
 
 
@@ -126,6 +126,7 @@ def target(df, features):
     for feature in features:
         df['Target_y ' + feature] = (df[feature].shift(-1) - df[feature])/df[feature]
     return df[:-1]
+
 
 # Process data by ticker
 def byTicker(df):
@@ -139,27 +140,35 @@ def byTicker(df):
     # Fill Share Price NAs with last known value
     df['Share Price'] = df['Share Price'].ffill()
 
-    # Average share prices for last 30 days
-    df.insert(3, column='SPQA', value=df['Share Price'].rolling(90, min_periods=1).mean())
-    df.insert(4, column='SPMA', value=df['Share Price'].rolling(30, min_periods=1).mean())
-
-    # Momentum on SPMA
-    try:
-        df.insert(5, column='SPMA Mom 1M', value=talib.MOM(np.array(df['SPMA']), 30))
-        df.insert(6, column='SPMA Mom 2M', value=talib.MOM(np.array(df['SPMA']), 60))
-        df.insert(7, column='SPMA Mom 3M', value=talib.MOM(np.array(df['SPMA']), 90))
-        df.insert(8, column='SPMA Mom 6M', value=talib.MOM(np.array(df['SPMA']), 180))
-        df.insert(9, column='SPMA Mom 9M', value=talib.MOM(np.array(df['SPMA']), 270))
-        df.insert(10, column='SPMA Mom 12M', value=talib.MOM(np.array(df['SPMA']), 360))
-    except:
-        pass
-
     # Get Last known value (these fields are reported at different times in the quarter by simfin)
     # This will get the last value within 90 days to be used by rows with published quarter data
     # df.iloc[:, 3:] = df.iloc[:, 3:].rolling(92, min_periods=1).apply(lambda x: x[x.last_valid_index()], raw=False)
     df['Common Shares Outstanding'] = df['Common Shares Outstanding'].rolling(92, min_periods=1).apply(lambda x: x[x.last_valid_index()], raw=False)
     df['Avg. Basic Shares Outstanding'] = df['Avg. Basic Shares Outstanding'].rolling(92, min_periods=1).apply(lambda x: x[x.last_valid_index()], raw=False)
     df['Avg. Diluted Shares Outstanding'] = df['Avg. Diluted Shares Outstanding'].rolling(92, min_periods=1).apply(lambda x: x[x.last_valid_index()], raw=False)
+
+    # Add a few more ratios
+    df['Basic Earnings Per Share'] = df['Net Profit'] / df['Avg. Basic Shares Outstanding'] * 1000
+    df['Common Earnings Per Share'] = df['Net Profit'] / df['Common Shares Outstanding'] * 1000
+    df['Diluted Earnings Per Share'] = df['Net Profit'] / df['Avg. Diluted Shares Outstanding'] * 1000
+    df['Basic PE'] = df['Share Price'] / df['Basic Earnings Per Share']
+    df['Common PE'] = df['Share Price'] / df['Common Earnings Per Share']
+    df['Diluted PE'] = df['Share Price'] / df['Diluted Earnings Per Share']
+
+    # Average share prices for last 30 days
+    df.insert(3, column='SPQA', value=df['Share Price'].rolling(90, min_periods=1).mean())
+    df.insert(4, column='SPMA', value=df['Share Price'].rolling(30, min_periods=1).mean())
+
+    # Momentum on SPMA
+    try:
+        df['SPMA Mom 1M'] = talib.MOM(np.array(df['SPMA']), 30)
+        df['SPMA Mom 2M'] = talib.MOM(np.array(df['SPMA']), 60)
+        df['SPMA Mom 3M'] = talib.MOM(np.array(df['SPMA']), 90)
+        df['SPMA Mom 6M'] = talib.MOM(np.array(df['SPMA']), 180)
+        df['SPMA Mom 9M'] = talib.MOM(np.array(df['SPMA']), 270)
+        df['SPMA Mom 12M'] = talib.MOM(np.array(df['SPMA']), 360)
+    except:
+        pass
 
     # Remove rows where feature is null (removes many rows)
     df = df[df['Revenues'].notnull()]
@@ -170,20 +179,17 @@ def byTicker(df):
         logger.warning(" - Not enough history")
         return None
 
-    # Add a few more ratios
-    df['Basic Earnings Per Share'] = df['Net Profit'] / df['Avg. Basic Shares Outstanding'] * 1000
-    df['Common Earnings Per Share'] = df['Net Profit'] / df['Common Shares Outstanding'] * 1000
-    df['Diluted Earnings Per Share'] = df['Net Profit'] / df['Avg. Diluted Shares Outstanding'] * 1000
-    df['Basic PE'] = df['Share Price'] / df['Basic Earnings Per Share']
-    df['Common PE'] = df['Share Price'] / df['Common Earnings Per Share']
-    df['Diluted PE'] = df['Share Price'] / df['Diluted Earnings Per Share']
+    # Add calculated features
+    # dfts = pd.DataFrame(df['Date']).join(impute(df.loc[:, 'Share Price':]))
+    # tf = extract_features(dfts, column_id='Date')
+    # df = df.join(tf)
 
     # Trailing twelve month on key features
-    df = T24M(df, features)
-    df = TTM(df, features)
+    df = T24M(df)
+    df = TTM(df)
 
     # Momentum on key features
-    df = mom(df, features)
+    df = mom(df)
 
     # Add lagged target for features
     df = target(df, ['SPQA'] + features)
@@ -192,8 +198,8 @@ def byTicker(df):
     df['Target_y Value'] = np.where(df['Target_y SPQA'] >= .05, 1, 0)
 
     # Scale all fundamental features by last Market Cap (not by row to show relative change in values)
-    marketCap = df['Market Capitalisation'].tail(1).item()
-    df.loc[:, 'Common Shares Outstanding':'Diluted PE T24M'] = df.loc[:, 'Common Shares Outstanding':'Diluted PE T24M'] / marketCap
+    # marketCap = df['Market Capitalisation'].tail(1).item()
+    # df.loc[:, 'Common Shares Outstanding':'Diluted PE Mom 1Q'] = df.loc[:, 'Common Shares Outstanding':'Diluted PE Mom 1Q'] / marketCap
 
     # Remove rows with too many null values
     # df = df.dropna(axis=0, thresh=15, subset=df.columns.to_list()[3:])
@@ -204,11 +210,52 @@ logger.info("Grouping SimFin data by ticker...")
 data = simfin.groupby('Ticker').apply(byTicker)
 
 
-from tsfresh import extract_features, select_features
-from tsfresh.utilities.dataframe_functions import impute
-df = pd.DataFrame(data.iloc[:,0]).join(impute(data.loc[:, 'Share Price':'Diluted PE T24M']))
-tf = extract_features(df, column_id='Date')
-# tf = impute(tf)
+y = data['Target_y Value']
+y = pd.Series(data['Target_y Value'].values, index=data['Ticker'])
+# df = pd.DataFrame(df['Date']).join(impute(df.loc[:, 'Share Price':]))
+df = data.loc[:,'Date':'Diluted PE Mom 1Q']
+df = df.set_index(data['Ticker'])
+df = df.dropna(axis=0)
+x = extract_features(df, column_id="Ticker", column_sort="Date")
+new = extract_relevant_features(x, y, column_id='Ticker', column_sort='Date')
+
+
+new = extract_relevant_features(df, y, column_id='Ticker', column_sort='Date')
+
+
+tf = extract_features(dfts, column_id='Date')
+df = df.join(tf)
+
+
+
+
+# df = data.loc[:, 'Share Price':'Diluted PE Mom 1Q']
+
+
+# df = pd.DataFrame(data['Date']).join(impute(data.loc[:, 'Share Price':'Diluted PE Mom 1Q']))
+df = data.loc[:, 'Share Price':'Diluted PE Mom 1Q']
+df = impute(df)
+# df = df.set_index(data['Ticker'])
+df = df.reset_index(drop=True)
+y = data['Target_y Value']
+# y = pd.Series(data['Target_y Value'].values, index=data['Ticker'])
+y = y.reset_index(drop=True)
+
+
+
+new = select_features(df, y)
+
+
+y = data['Target_y Value']
+y.reindex(data['Date'])
+index = y.index.get_level_values(0).to_series().tolist()
+y.set_index(index)
+
+
+
+
+
+new = extract_relevant_features(data, y, column_id='Ticker', column_sort='Date')
 
 
 
