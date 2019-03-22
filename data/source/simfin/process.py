@@ -1,24 +1,21 @@
-import pickle
 import talib
 import pandas as pd
 import numpy as np
 from loguru import logger
 import random
 from tsfresh import extract_features, select_features, extract_relevant_features
-from tsfresh.utilities.dataframe_functions import impute
+from tsfresh.utilities.dataframe_functions import impute, make_forecasting_frame
+import os
 
 # Set current directory
 try:
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    os.chdir(dname)
-except NameError:
-    import os
-    os.chdir('d:/projects/quant/quarterly/source/simfin')
+    os.chdir(os.path.dirname(__file__))
+except:
+    os.chdir('d:/projects/quant/data/source/simfin')
 
 # Set console display options for panda dataframes
 pd.options.display.max_rows = 100
-pd.options.display.max_columns = 100
+pd.options.display.max_columns = 60
 pd.options.display.width = 150
 
 # Key features
@@ -34,32 +31,14 @@ features = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'EBITDA', 'Net Profit',
 
 # Load SimFin dataset
 logger.info("Loading Simfin dataset ...")
-with open('data_extract.pickle', 'rb') as handle:
-    simfin = pickle.load(handle)
-
-cols = len(simfin.columns)
-logger.info("Dataset columns: " + str(cols))
-rows = len(simfin)
-logger.info("Dataset rows: " + str(rows))
-
-# Dropping duplicates
-logger.info("Dropping duplicate rows ... ")
-simfin = simfin.drop_duplicates(subset=['Date', 'Ticker'])
-rows = len(simfin)
-logger.info("Dataset rows: " + str(rows))
-
-# Remove rows with invalid ticker symbol
-logger.info("Dropping invalid ticker rows ... ")
-simfin = simfin[simfin['Ticker'].str.contains('^[A-Za-z]+$')]
-rows = len(simfin)
-logger.info("Dataset rows: " + str(rows))
+simfin = pd.read_pickle("extract.pickle")
 
 # Temporarily make simfin dataset smaller for testing
 # simfin = simfin.query('Ticker == "A" | Ticker == "AAMC" | Ticker == "FLWS"')
-# simfin = simfin.query('Ticker == "FLWS"')
+simfin = simfin.query('Ticker == "FLWS"')
 # simfin = simfin.query('Ticker == "TSLA"')
 # simfin = simfin.query('Ticker == "ABR"')
-simfin = simfin.head(500000)
+# simfin = simfin.head(500000)
 
 
 # Momentum
@@ -179,23 +158,27 @@ def byTicker(df):
         logger.warning(" - Not enough history")
         return None
 
+    return df
+
     # Add calculated features
     # dfts = pd.DataFrame(df['Date']).join(impute(df.loc[:, 'Share Price':]))
     # tf = extract_features(dfts, column_id='Date')
     # df = df.join(tf)
 
+
+
     # Trailing twelve month on key features
-    df = T24M(df)
-    df = TTM(df)
+    # df = T24M(df)
+    # df = TTM(df)
 
     # Momentum on key features
-    df = mom(df)
+    # df = mom(df)
 
     # Add lagged target for features
-    df = target(df, ['SPQA'] + features)
+    # df = target(df, ['SPQA'] + features)
 
     # Add value target if percent gain is greater than x percent
-    df['Target_y Value'] = np.where(df['Target_y SPQA'] >= .05, 1, 0)
+    # df['Target_y Value'] = np.where(df['Target_y SPQA'] >= .05, 1, 0)
 
     # Scale all fundamental features by last Market Cap (not by row to show relative change in values)
     # marketCap = df['Market Capitalisation'].tail(1).item()
@@ -210,22 +193,36 @@ logger.info("Grouping SimFin data by ticker...")
 data = simfin.groupby('Ticker').apply(byTicker)
 
 
-y = data['Target_y Value']
-y = pd.Series(data['Target_y Value'].values, index=data['Ticker'])
-# df = pd.DataFrame(df['Date']).join(impute(df.loc[:, 'Share Price':]))
-df = data.loc[:,'Date':'Diluted PE Mom 1Q']
-df = df.set_index(data['Ticker'])
-df = df.dropna(axis=0)
-x = extract_features(df, column_id="Ticker", column_sort="Date")
-new = extract_relevant_features(x, y, column_id='Ticker', column_sort='Date')
 
 
-new = extract_relevant_features(df, y, column_id='Ticker', column_sort='Date')
+df = simfin.groupby('Ticker').apply(byTicker)
+
+df = df.reset_index(drop=True)
+dfShift, y = make_forecasting_frame(df['EBITDA'], kind="price", max_timeshift=16, rolling_direction=1)
+X = extract_features(dfShift, column_id="id", column_sort="time", column_value="value", impute_function=impute)
+X = pd.concat([pd.Series(np.nan), X], ignore_index=True)
+df = df.join(X)
 
 
-tf = extract_features(dfts, column_id='Date')
-df = df.join(tf)
+# tf = extract_features(dfts, column_id='Date')
+# df = df.join(tf)
 
+
+
+
+
+
+
+
+df = data.dropna(axis=0)
+y = pd.Series(df['Target_y Value'].values, index=df['Ticker'])
+df = df.loc[:,'Date':'Diluted PE Mom 1Q']
+df = df.set_index(df['Ticker'])
+X = extract_features(df, column_id="Ticker", column_sort="Date")
+X = impute(X)
+new = select_features(X, y)
+
+j = X.loc[:, X.apply(pd.Series.nunique) != 1]
 
 
 
@@ -233,18 +230,18 @@ df = df.join(tf)
 
 
 # df = pd.DataFrame(data['Date']).join(impute(data.loc[:, 'Share Price':'Diluted PE Mom 1Q']))
-df = data.loc[:, 'Share Price':'Diluted PE Mom 1Q']
-df = impute(df)
-# df = df.set_index(data['Ticker'])
-df = df.reset_index(drop=True)
-y = data['Target_y Value']
-# y = pd.Series(data['Target_y Value'].values, index=data['Ticker'])
-y = y.reset_index(drop=True)
+# df = data.loc[:, 'Share Price':'Diluted PE Mom 1Q']
+# df = impute(df)
+# # df = df.set_index(data['Ticker'])
+# df = df.reset_index(drop=True)
+# y = data['Target_y Value']
+# # y = pd.Series(data['Target_y Value'].values, index=data['Ticker'])
+# y = y.reset_index(drop=True)
 
 
 
 new = select_features(df, y)
-
+#
 
 y = data['Target_y Value']
 y.reindex(data['Date'])

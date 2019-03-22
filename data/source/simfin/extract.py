@@ -3,17 +3,14 @@ from math import floor
 from datetime import datetime
 import re
 import pandas as pd
-import pickle
 from loguru import logger
+import os
 
 # Set current directory
 try:
-    abspath = os.path.abspath(__file__)
-    dname = os.path.dirname(abspath)
-    os.chdir(dname)
-except NameError:
-    import os
-    os.chdir('d:/projects/quant/quarterly/source/simfin')
+    os.chdir(os.path.dirname(__file__))
+except:
+    os.chdir('d:/projects/quant/data/source/simfin')
 
 
 # Classes from Simfin github
@@ -232,7 +229,7 @@ class SimFinDataset:
 # Load SimFin dataset
 # Download with "Publishing Date, Quarters, Wide, Semicolon
 # dataset = SimFinDataset('output-semicolon-wide.csv', 'semicolon', "2014-12-31", "2016-12-31")
-logger.info("Loading dataset.  Be patient ...")
+logger.info("Loading simfin csv dataset.  Be patient ...")
 dataset = SimFinDataset('output-semicolon-wide.csv', 'semicolon')
 
 # Load dataset into Pandas DataFrame
@@ -251,11 +248,20 @@ simfin['Date'] = pd.to_datetime(simfin['Date'], format="%Y-%m-%d")
 for col in  simfin.columns[2:]:
     simfin[col] = pd.to_numeric(simfin[col], errors='coerce')
 
-# First 200 rows to csv file for viewing
-# simfin.head(20000).to_csv('tmp/simfin_dataset.csv', encoding='utf-8', index=False)
+# Drop duplicates
+simfin.drop_duplicates(subset=['Date', 'Ticker'], keep=False, inplace=True)
+
+# Remove rows with invalid ticker symbol
+simfin = simfin[simfin['Ticker'].str.contains('^[A-Za-z]+$')]
+
+# Load previous dataset
+if os.path.isfile('extract.pickle'):
+    logger.info("Merging previous simfin data.  Be patient ...")
+    origSimfin = pd.read_pickle("extract.pickle")
+    mergedSimfin = pd.concat([origSimfin, simfin])
+    simfin = mergedSimfin.drop_duplicates(subset=['Date', 'Ticker'], keep="last")
 
 # Save DataFrame to pickle file for later use
-logger.info("Saving dataframe ...")
-with open('data_extract.pickle', 'wb') as handle:
-    pickle.dump(simfin, handle)
+logger.info("Saving simfin dataframe ...")
+simfin.to_pickle("extract.pickle")
 
