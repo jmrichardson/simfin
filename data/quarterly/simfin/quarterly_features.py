@@ -2,14 +2,14 @@ import talib
 import pandas as pd
 import numpy as np
 from loguru import logger
-import os
+import os, sys
 
 # Set current directory and initialize
 try:
     os.chdir(os.path.dirname(__file__))
 except:
     # Needed for working with pycharm interactive console
-    script =  'd:/projects/quant/data/quarterly/simfin'
+    script = 'd:/projects/quant/data/quarterly/simfin'
     os.chdir(script)
     sys.path.extend([script])
 import init

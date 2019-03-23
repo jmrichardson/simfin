@@ -4,13 +4,16 @@ from datetime import datetime
 import re
 import pandas as pd
 from loguru import logger
-import os
+import os, sys
 
-# Set current directory
+# Set current directory and initialize
 try:
     os.chdir(os.path.dirname(__file__))
 except:
-    os.chdir('d:/projects/quant/data/quarterly/simfin')
+    # Needed for working with pycharm interactive console
+    script = 'd:/projects/quant/data/quarterly/simfin'
+    os.chdir(script)
+    sys.path.extend([script])
 
 
 # Classes from Simfin github
