@@ -1,71 +1,85 @@
 import pandas as pd
-import numpy as np
 from loguru import logger
 import random
 from tsfresh import extract_features, select_features, extract_relevant_features
 from tsfresh.utilities.dataframe_functions import impute, make_forecasting_frame
-import os, sys
+import os
+import re
+import sys
+import importlib
 
-# Set current directory and initialize
 try:
-    os.chdir(os.path.dirname(__file__))
+    path = os.path.dirname(__file__)
+    os.chdir(path)
 except:
-    # Needed for working with pycharm interactive console
-    script =  'd:/projects/quant/data/quarterly/simfin'
-    os.chdir(script)
-    sys.path.extend([script])
-import init
+    # Python shell
+    path = 'd:/projects/quant/quant/process/simfin'
+    os.chdir(path)
 
-# Set console display options for panda dataframes
-pd.options.display.max_rows = 50
-pd.options.display.max_columns = 60
-pd.options.display.width = 150
+# Import quant module(s)
+home = re.sub(r"(.*quant).*", r"\1", path)
+sys.path.extend([home, path])
+# from config import *
+import config
+out = importlib.reload(config)
+import process
+out = importlib.reload(process)
+import common
+out = importlib.reload(common)
 
 # Load dataset
 logger.info("Loading simfin dataset ...")
-simfin = pd.read_pickle("data/quarterly_features.pickle")
+simfin = pd.read_pickle("tmp/quarterly_features.pickle")
 
 # Temporarily make simfin dataset smaller for testing
-# simfin = simfin.query('Ticker == "A" | Ticker == "AAMC" | Ticker == "FLWS"')
-simfin = simfin.query('Ticker == "FLWS"')
+simfin = simfin.query('Ticker == "A" | Ticker == "AAMC" | Ticker == "FLWS"')
+# simfin = simfin.query('Ticker == "FLWS"')
 
 # Process data by ticker
 def by_ticker(df):
 
-    ticker = str(df['Ticker'].iloc[0])
-    logger.info("Processing " + ticker + "...")
+    logger.info("Processing " + str(df['Ticker'].iloc[0]) + "...")
 
     # Sort dataframe by date
     df = df.sort_values(by='Date')
 
-    # Add calculated features
-    # dfts = pd.DataFrame(df['Date']).join(impute(df.loc[:, 'Share Price':]))
-    # tf = extract_features(dfts, column_id = 'Date')
-    # df = df.join(tf)
+    df.reset_index(drop=True, inplace=True)
 
+    for feature in config.simfin_features:
+        print(feature)
+        df_roll, y = make_forecasting_frame(df['COGS'], kind="price", max_timeshift=16, rolling_direction=1)
+        X = extract_features(df_roll, column_id="id", column_sort="time", column_value="value",
+                             impute_function=impute, disable_progressbar=True, show_warnings=False)
+        X = X.add_prefix(feature + '_')
+        X = pd.DataFrame().append(pd.Series(), ignore_index=True).append(X, ignore_index=True)
+        df = df.join(X)
 
-    extracted_features = extract_features(timeseries, column_id="id", column_sort="time")
-
-
-    # df = df.dropna(axis = 0, thresh = 15, subset = df.columns.to_list()[3:])
-
+    # df = df.reindex(index)
     return df
 
 logger.info("Grouping SimFin data by ticker...")
 data = simfin.groupby('Ticker').apply(by_ticker)
+data.reset_index(drop=True, inplace=True)
 
 
 
 
 df = simfin.groupby('Ticker').apply(by_ticker)
 
-df = df.reset_index(drop=True)
-df = pd.concat([df, pd.Series(np.nan)], ignore_index=True).drop(0, axis=1)
-df_roll, y = make_forecasting_frame(df['Revenues'], kind="price", max_timeshift=16, rolling_direction=1)
-X = extract_features(df_roll, column_id="id", column_sort="time", column_value="value", impute_function=impute)
-X = extract_features(df_roll, column_id="id", column_sort="time", column_value="value")
+index = df.index
+for feature in ['Revenues','COGS','EBIT']:
+    print(feature)
+    df.reset_index(drop=True, inplace=True)
+    df_roll, y = make_forecasting_frame(df['COGS'], kind="price", max_timeshift=16, rolling_direction=1)
+    X = extract_features(df_roll, column_id="id", column_sort="time", column_value="value",
+                         impute_function=impute, disable_progressbar=True, show_warnings=False)
+    X = X.add_prefix(feature + '_')
+    X = pd.DataFrame().append(pd.Series(), ignore_index=True).append(X, ignore_index=True)
+    df = df.join(X)
 
-df = df.join(X)
+
+df = df.reindex(index)
+
 
 
 # tf = extract_features(dfts, column_id='Date')

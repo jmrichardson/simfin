@@ -4,16 +4,16 @@ from datetime import datetime
 import re
 import pandas as pd
 from loguru import logger
-import os, sys
+import os
 
-# Set current directory and initialize
+# Set current directory
 try:
-    os.chdir(os.path.dirname(__file__))
+    path = os.path.dirname(__file__)
+    os.chdir(path)
 except:
-    # Needed for working with pycharm interactive console
-    script = 'd:/projects/quant/data/quarterly/simfin'
-    os.chdir(script)
-    sys.path.extend([script])
+    # Python shell
+    path = 'd:/projects/quant/quant/process/simfin'
+    os.chdir(path)
 
 
 # Classes from Simfin github
@@ -258,13 +258,13 @@ simfin.drop_duplicates(subset=['Date', 'Ticker'], keep=False, inplace=True)
 simfin = simfin[simfin['Ticker'].str.contains('^[A-Za-z]+$')]
 
 # Load previous dataset
-if os.path.isfile('data/extract.pickle'):
+if os.path.isfile('tmp/extract.pickle'):
     logger.info("Merging previous simfin data.  Be patient ...")
-    origSimfin = pd.read_pickle("data/extract.pickle")
+    origSimfin = pd.read_pickle("tmp/extract.pickle")
     mergedSimfin = pd.concat([origSimfin, simfin])
     simfin = mergedSimfin.drop_duplicates(subset=['Date', 'Ticker'], keep="last")
 
 # Save DataFrame to pickle file for later use
 logger.info("Saving simfin dataframe ...")
-simfin.to_pickle("data/extract.pickle")
+simfin.to_pickle("tmp/extract.pickle")
 

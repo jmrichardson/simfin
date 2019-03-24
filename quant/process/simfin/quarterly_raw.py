@@ -2,26 +2,20 @@ import talib
 import pandas as pd
 import numpy as np
 from loguru import logger
-import random
-import os, sys
+import os
 
-# Set current directory and initialize
+# Set current directory
 try:
-    os.chdir(os.path.dirname(__file__))
+    path = os.path.dirname(__file__)
+    os.chdir(path)
 except:
-    # Needed for working with pycharm interactive console
-    script =  'd:/projects/quant/data/quarterly/simfin'
-    os.chdir(script)
-    sys.path.extend([script])
-
-# Set console display options for panda dataframes
-pd.options.display.max_rows = 100
-pd.options.display.max_columns = 60
-pd.options.display.width = 150
+    # Python shell
+    path = 'd:/projects/quant/quant/process/simfin'
+    os.chdir(path)
 
 # Load SimFin dataset
 logger.info("Loading extracted simfin dataset ...")
-simfin = pd.read_pickle("data/extract.pickle")
+simfin = pd.read_pickle("tmp/extract.pickle")
 
 # Temporarily make simfin dataset smaller for testing
 # simfin = simfin.query('Ticker == "A" | Ticker == "AAMC" | Ticker == "FLWS"')
@@ -31,8 +25,7 @@ simfin = pd.read_pickle("data/extract.pickle")
 # Process data by ticker
 def byTicker(df):
 
-    ticker = str(df['Ticker'].iloc[0])
-    logger.info("Processing " + ticker + "...")
+    logger.info("Processing " + str(df['Ticker'].iloc[0]) + "...")
 
     # Sort dataframe by date
     df = df.sort_values(by='Date')
@@ -79,9 +72,8 @@ def byTicker(df):
 logger.info("Grouping SimFin data by ticker...")
 data = simfin.groupby('Ticker').apply(byTicker)
 
-# Save dataset output
-# data.to_csv('data' + str(random.randint(1, 100000)) + '.csv', encoding='utf-8', index=False)
-
 logger.info("Saving data ...")
 data.reset_index(drop=True, inplace=True)
-data.to_pickle("data/quarterly_raw.pickle")
+data.to_pickle("tmp/quarterly_raw.pickle")
+
+
