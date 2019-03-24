@@ -2,8 +2,10 @@ import talib
 import numpy as np
 from loguru import logger as log
 
-def yo():
-    print('yo')
+
+def target():
+    return target
+
 
 # Add momentum indicator on features
 def mom(df, features, count):
