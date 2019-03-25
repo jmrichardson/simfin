@@ -1,21 +1,26 @@
 import talib
 import pandas as pd
 import numpy as np
-from loguru import logger
+from loguru import logger as log
 import os
 
-# Set current directory
+# Get working directory
 try:
-    path = os.path.dirname(__file__)
-    os.chdir(path)
+    path = os.path.dirname(os.path.realpath(__file__))
 except:
-    # Python shell
-    path = 'd:/projects/quant/quant/process/simfin'
-    os.chdir(path)
+    path = 'd:/projects/quant/quant/data/simfin'
+
+# Set path to allow for imports
+os.chdir(path)
+home = re.sub(r"(.*quant).*", r"\1", path)
+sys.path.extend([home, path])
+
+# Set logging parameters
+log.add("logs/quarterly_tsfresh.log")
 
 # Load SimFin dataset
-logger.info("Loading extracted simfin dataset ...")
-simfin = pd.read_pickle("tmp/extract.pickle")
+log.info("Loading extracted simfin dataset ...")
+simfin = pd.read_pickle("data/extract.pickle")
 
 # Temporarily make simfin dataset smaller for testing
 # simfin = simfin.query('Ticker == "A" | Ticker == "AAMC" | Ticker == "FLWS"')
@@ -25,7 +30,7 @@ simfin = pd.read_pickle("tmp/extract.pickle")
 # Process data by ticker
 def byTicker(df):
 
-    logger.info("Processing " + str(df['Ticker'].iloc[0]) + "...")
+    log.info("Processing " + str(df['Ticker'].iloc[0]) + "...")
 
     # Sort dataframe by date
     df = df.sort_values(by='Date')
@@ -69,11 +74,11 @@ def byTicker(df):
 
     return df
 
-logger.info("Grouping SimFin data by ticker...")
+log.info("Grouping SimFin data by ticker...")
 data = simfin.groupby('Ticker').apply(byTicker)
 
-logger.info("Saving data ...")
+log.info("Saving data ...")
 data.reset_index(drop=True, inplace=True)
-data.to_pickle("tmp/quarterly_raw.pickle")
+data.to_pickle("data/quarterly_raw.pickle")
 
 

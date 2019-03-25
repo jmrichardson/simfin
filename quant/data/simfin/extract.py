@@ -3,18 +3,22 @@ from math import floor
 from datetime import datetime
 import re
 import pandas as pd
-from loguru import logger
+from loguru import logger as log
 import os
 
-# Set current directory
+# Get working directory
 try:
-    path = os.path.dirname(__file__)
-    os.chdir(path)
+    path = os.path.dirname(os.path.realpath(__file__))
 except:
-    # Python shell
-    path = 'd:/projects/quant/quant/process/simfin'
-    os.chdir(path)
+    path = 'd:/projects/quant/quant/data/simfin'
 
+# Set path to allow for imports
+os.chdir(path)
+home = re.sub(r"(.*quant).*", r"\1", path)
+sys.path.extend([home, path])
+
+# Set logging parameters
+log.add("logs/quarterly_tsfresh.log")
 
 # Classes from Simfin github
 class Company(object):
@@ -232,11 +236,11 @@ class SimFinDataset:
 # Load SimFin dataset
 # Download with "Publishing Date, Quarters, Wide, Semicolon
 # dataset = SimFinDataset('output-semicolon-wide.csv', 'semicolon', "2014-12-31", "2016-12-31")
-logger.info("Loading simfin csv dataset.  Be patient ...")
+log.info("Loading simfin csv dataset.  Be patient ...")
 dataset = SimFinDataset('data/output-semicolon-wide.csv', 'semicolon')
 
 # Load dataset into Pandas DataFrame
-logger.info("Converting dataset into data frame.  Be patient ...")
+log.info("Converting dataset into data frame.  Be patient ...")
 simfin = pd.DataFrame()
 for i, company in enumerate(dataset.companies):
     df = pd.DataFrame()
@@ -258,13 +262,13 @@ simfin.drop_duplicates(subset=['Date', 'Ticker'], keep=False, inplace=True)
 simfin = simfin[simfin['Ticker'].str.contains('^[A-Za-z]+$')]
 
 # Load previous dataset
-if os.path.isfile('tmp/extract.pickle'):
-    logger.info("Merging previous simfin data.  Be patient ...")
-    origSimfin = pd.read_pickle("tmp/extract.pickle")
+if os.path.isfile('data/extract.pickle'):
+    log.info("Merging previous simfin data.  Be patient ...")
+    origSimfin = pd.read_pickle("data/extract.pickle")
     mergedSimfin = pd.concat([origSimfin, simfin])
     simfin = mergedSimfin.drop_duplicates(subset=['Date', 'Ticker'], keep="last")
 
 # Save DataFrame to pickle file for later use
-logger.info("Saving simfin dataframe ...")
-simfin.to_pickle("tmp/extract.pickle")
+log.info("Saving simfin dataframe ...")
+simfin.to_pickle("data/extract.pickle")
 

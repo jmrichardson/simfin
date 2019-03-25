@@ -5,14 +5,19 @@ import re
 import importlib
 from loguru import logger as log
 
-# Set current directory
+# Get working directory
 try:
-    path = os.path.dirname(__file__)
-    os.chdir(path)
+    path = os.path.dirname(os.path.realpath(__file__))
 except:
-    # Python shell
-    path = 'd:/projects/quant/quant/process/simfin'
-    os.chdir(path)
+    path = 'd:/projects/quant/quant/data/simfin'
+
+# Set path to allow for imports
+os.chdir(path)
+home = re.sub(r"(.*quant).*", r"\1", path)
+sys.path.extend([home, path])
+
+# Set logging parameters
+log.add("logs/quarterly_tsfresh.log")
 
 # Import quant module(s)
 home = re.sub(r"(.*quant).*", r"\1", path)
@@ -25,7 +30,7 @@ out = importlib.reload(process)
 
 # Load SimFin dataset
 log.info("Loading Simfin dataset ...")
-simfin = pd.read_pickle("tmp/quarterly_raw.pickle")
+simfin = pd.read_pickle("data/quarterly_raw.pickle")
 
 # Temporarily make simfin dataset smaller for testing
 # simfin = simfin.query('Ticker == "A" | Ticker == "AAMC" | Ticker == "FLWS"')
@@ -51,6 +56,6 @@ data = simfin.groupby('Ticker').apply(byTicker)
 data.reset_index(drop=True, inplace=True)
 
 log.info("Saving data ...")
-data.to_pickle("tmp/quarterly_features.pickle")
+data.to_pickle("data/quarterly_features.pickle")
 
 
