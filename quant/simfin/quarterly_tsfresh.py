@@ -77,7 +77,7 @@ def main():
     data.reset_index(drop=True, inplace=True)
 
     log.info("Saving data ...")
-    data.to_pickle("data/quarterly_tsfresh.pickle")
+    data.to_pickle("data/quarterly_features_tsfresh.pickle")
 
     ### Select relevant features
     # Per ticker, pct change, shift by -1 then remove last nan row
@@ -91,7 +91,7 @@ def main():
     new = select_features(X, y)
 
     log.info("Saving data ...")
-    new.to_pickle("data/quarterly_tsfresh_new.pickle")
+    new.to_pickle("data/rterly_tsfresh_new.pickle")
 
     # Remove log
     log.remove(lid)

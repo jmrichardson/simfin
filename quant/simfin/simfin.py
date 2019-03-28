@@ -1,8 +1,13 @@
 import re
 import pandas as pd
+import numpy as np
+from tsfresh import extract_features, select_features
+from tsfresh.utilities.dataframe_functions import impute, make_forecasting_frame
 from loguru import logger as log
 import os
 import sys
+from importlib import reload
+import talib
 
 # Set current working directory (except for interactive shell)
 try:
@@ -17,66 +22,93 @@ sys.path.extend([cwd, rootPath])
 
 # Import helper modules
 from extractor import *
-from features import *
+import config
+out = reload(config)
+from config import *
+
+
 
 # Enable logging
-lid = log.add("logs/simfin_{time:YYYY-MM-DD_HH-mm-ss}.log", retention=5)
+log_file = os.path.join(log_dir, "simfin_{time:YYYY-MM-DD_HH-mm-ss}.log")
+lid = log.add(log_file, retention=5)
 
 
 class simfin:
 
-    def __init__(self):
-        self.bulk = pd.DataFrame()
-        self.flat = pd.DataFrame()
-        self.flatIndicators = pd.DataFrame()
-        self.flatIndicatorsTsfresh = pd.DataFrame()
+    def __init__(self, force=False):
+        self.force = force
+        self.data_dir = data_dir
+        self.tmp_dir = tmp_dir
+        self.csv_file = os.path.join(self.data_dir, csv_file)
 
-    def extractBulk(self, csv='data/output-semicolon-wide.csv', force=False):
+        self.bulk_df = pd.DataFrame()
+        self.bulk_df_file = os.path.join(self.data_dir, 'bulk.pickle')
 
-        file = 'data/bulk.pickle'
-        if not force and os.path.exists(file):
-            if os.path.exists(file):
+        self.flat_df = pd.DataFrame()
+        self.flat_df_file = os.path.join(self.data_dir, 'flat.pickle')
+
+        self.indicators_df = pd.DataFrame()
+        self.indicators_df_file = os.path.join(self.data_dir, 'indicators.pickle')
+
+        self.tsfresh_df = pd.DataFrame()
+        self.tsfresh_df_file = os.path.join(self.data_dir, 'tsfresh.pickle')
+
+    def bulk(self):
+
+        # Load previously saved DF if exists
+        if not self.force and os.path.exists(self.bulk_df_file):
+            if os.path.exists(self.bulk_df_file):
                 log.info("Loading saved bulk data set ...")
-                self.bulk = pd.read_pickle(file)
+                self.bulk_df = pd.read_pickle(self.bulk_df_file)
                 return self
 
         log.info("Loading bulk data set.  Be patient ...")
-        dataSet = SimFinDataset(csv)
+        dataSet = SimFinDataset(self.csv_file)
 
-        # Load dataSet into DF
+        # Load dataSet into Df
         log.info("Converting data set into flat data frame.  Be patient ...")
-        df = pd.DataFrame()
+        data = pd.DataFrame()
         for i, company in enumerate(dataSet.companies):
             df = pd.DataFrame()
             df['Date'] = dataSet.timePeriods
             df['Ticker'] = company.ticker
             for i, indicator in enumerate(company.data):
                 df[indicator.name] = indicator.values
-            df = df.append(df)
+            data = data.append(df)
 
         # Convert columns to proper format
-        df['Date'] = pd.to_datetime(df['Date'], format="%Y-%m-%d")
-        for col in df.columns[2:]:
-            df[col] = pd.to_numeric(df[col], errors='coerce')
+        data['Date'] = pd.to_datetime(data['Date'], format="%Y-%m-%d")
+        for col in data.columns[2:]:
+            data[col] = pd.to_numeric(data[col], errors='coerce')
 
         # Drop duplicates
-        df.drop_duplicates(subset=['Date', 'Ticker'], keep=False, inplace=True)
+        data.drop_duplicates(subset=['Date', 'Ticker'], keep=False, inplace=True)
 
         # Remove rows with invalid ticker symbol
-        df = df[df['Ticker'].str.contains('^[A-Za-z]+$')]
+        data = data[data['Ticker'].str.contains('^[A-Za-z]+$')]
 
-        self.bulk = df
+        self.bulk_df = data
+        self.bulk_df.to_pickle(self.bulk_df_file)
+
         return self
 
     # Flattened dataset
-    def flatten(self, force=False):
+    def flat(self):
 
-        # Load previously saved
-        file = 'data/flat.pickle'
-        if not force and os.path.exists(file):
+        # Load previously saved DF if exists
+        if not self.force and os.path.exists(self.flat_df_file):
             log.info("Loading saved flat data set ...")
-            self.flat = pd.read_pickle(file)
+            self.flat_df = pd.read_pickle(self.flat_df_file)
             return self
+
+        # If empty bulk data, load previously saved or throw error
+        if self.bulk_df.empty:
+            if os.path.exists(self.bulk_df_file):
+                log.info("Loading saved bulk data set ...")
+                self.bulk_df = pd.read_pickle(self.bulk_df_file)
+            else:
+                log.error("No bulk data set.  Run bulk method")
+                exit()
 
         # Process by ticker
         def byTicker(df):
@@ -128,17 +160,55 @@ class simfin:
             return df
 
         log.info("Flattening SimFin data set by ticker ...")
-        self.flat = self.bulk.groupby('Ticker').apply(byTicker)
+        self.flat_df = self.bulk_df.groupby('Ticker').apply(byTicker)
+        self.flat_df.to_pickle(self.flat_df_file)
+
         return self
 
     # Add indicators for each feature
-    def addIndicators(self, force=False, file='data/flat_indicators.pickle'):
+    def indicators(self):
 
-        # Load previously saved
-        if not force and os.path.exists(file):
+        # Load previously saved DF if exists
+        if not self.force and os.path.exists(self.indicators_df_file):
             log.info("Loading saved indicator data set ...")
-            self.flatIndicators = pd.read_pickle(file)
+            self.indicators_df = pd.read_pickle(self.indicators_df_file)
             return self
+
+        # Add momentum indicator on features
+        def mom(df, features, count):
+            for feature in features:
+                if df[feature].isnull().all():
+                    continue
+                for i in range(1, count + 1, 1):
+                    try:
+                        df[feature + ' Mom ' + str(i) + 'Q'] = talib.MOM(np.array(df[feature]), i)
+                    except Exception as e:
+                        log.warning("Momentum " + str(feature) + ": " + str(e))
+            return df
+
+        # Calculate trailing twelve months
+        def TTM(df, features, roll, days):
+            def lastYearSum(series):
+                # Must have x previous inputs
+                if len(series) < roll:
+                    return np.nan
+                # Must be within X days date range
+                else:
+                    firstDate = df['Date'][series.head(1).index.item()]
+                    lastDate = df['Date'][series.tail(1).index.item()]
+                    if (lastDate - firstDate).days > days:
+                        return np.nan
+                    else:
+                        return series.sum()
+
+            for feature in features:
+                if df[feature].isnull().all():
+                    continue
+                try:
+                    df[feature + ' TTM'] = df[feature].rolling(roll, min_periods=1).apply(lastYearSum, raw=False)
+                except:
+                    log.warning("Unable to add TTM for: " + feature)
+            return df
 
         # Process data by ticker
         def byTicker(df):
@@ -148,30 +218,32 @@ class simfin:
             df = df.sort_values(by='Date')
 
             # Trailing twelve month
-            df = process.TTM(df, config.simfin_features, 4, 370)
+            df = TTM(df, simfinFeatures, 4, 370)
 
             # Momentum
-            df = process.mom(df, config.simfin_features, 6)
+            df = mom(df, simfinFeatures, 6)
             return df
 
         log.info("Adding indicators per feature ...")
-        self.flatIndicators = self.flat.groupby('Ticker').apply(byTicker)
+        self.indicators_df = self.flat_df.groupby('Ticker').apply(byTicker)
+        self.indicators_df.to_pickle(self.indicators_df_file)
 
         return self
 
-    def addTsfresh(self, force=False, file='data/flat_indicators_tsfresh.pickle'):
+
+    def tsfresh(self):
 
         # Load previously saved data set
-        if not force and os.path.exists(file):
+        if not self.force and os.path.exists(self.tsfresh_df_file):
             log.info("Loading saved tsfresh data set ...")
-            self.flatIndicatorsTsfresh = pd.read_pickle(file)
+            self.tsfresh_df = pd.read_pickle(self.tsfresh_df_file)
             return self
 
         # Process data by ticker
         def by_ticker(df):
 
             ticker = str(df['Ticker'].iloc[0])
-            store = "tmp/" + ticker + ".pickle"
+            store = os.path.join(self.tmp_dir, ticker + ".pickle")
             log.info("Ticker: " + ticker)
 
             if os.path.isfile(store):
@@ -183,7 +255,7 @@ class simfin:
 
             df.reset_index(drop=True, inplace=True)
 
-            for feature in simfin_features:
+            for feature in simfinFeatures:
                 log.info("  Feature: " + feature)
                 if df[feature].count() <= 1:
                     log.warning("  Feature count <= 1: " + feature)
@@ -205,21 +277,18 @@ class simfin:
             return df
 
         log.info("Add tsfresh indicators by feature ...")
-        data = self.flatIndicators.groupby('Ticker').apply(by_ticker)
+        data = self.indicators_df.groupby('Ticker').apply(by_ticker)
         data.reset_index(drop=True, inplace=True)
-        self.flatIndicatorsTsfresh = data
+        self.tsfresh_df = data
+        self.tsfresh_df.to_pickle(file)
 
         return self
 
 
-
-# sf = simfin().extractBulk().flatten().addIndicators()
-sf = simfin().flatten().addIndicators().addTsfresh()
+sf = simfin().bulk().flat().indicators().tsfresh()
 
 
-os.mkdir("tmp")
-
-
-
+# Remove log
+log.remove(lid)
 
 
