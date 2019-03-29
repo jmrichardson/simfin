@@ -18,7 +18,7 @@ os.chdir(cwd)
 rootPath = re.sub(r"(.*quant).*", r"\1", cwd)
 sys.path.extend([cwd, rootPath])
 
-# Import helper modules
+# Import helper modules - FORCE RELOAD DURING TESTING - REMOVE THIS
 import config
 out = reload(config)
 from config import *

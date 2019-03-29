@@ -6,11 +6,8 @@ from loguru import logger as log
 
 def by_ticker(df, min_quarters):
 
-    log.info("Processing " + str(df['Ticker'].iloc[0]) + "...")
-
-    if len(df.index) < min_quarters:
-        log.warn("Not enough quarter history: " + str(min_quarters))
-        return pd.DataFrame
+    ticker = str(df['Ticker'].iloc[0])
+    log.info("Processing {} ...".format(ticker))
 
     # Sort dataframe by date
     df = df.sort_values(by='Date')
@@ -50,9 +47,13 @@ def by_ticker(df, min_quarters):
     except:
         pass
 
-    # Remove rows where feature is null (removes many rows)
+    # Remove rows where feature is null (squash to quarterly)
     df = df[df['Revenues'].notnull()]
-    df = df[df['Net Profit'].notnull()]
+
+    rows = len(df.index)
+    if rows < min_quarters:
+        log.warning("{} - Not enough quarter history:  Requires {}, Actual {}".format(ticker, min_quarters, rows))
+        return pd.DataFrame
 
     return df
 
