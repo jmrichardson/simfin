@@ -50,12 +50,6 @@ def by_ticker(df, flatten_by):
     # Remove rows where Revenues is null (squash to quarterly)
     df = df[df[flatten_by].notnull()]
 
-    # Must have min # of quarters
-    # rows = len(df.index)
-    # if rows < min_quarters:
-        # log.warning("{} - Not enough quarter history:  Requires {}, Actual {}".format(ticker, min_quarters, rows))
-        # # return pd.DataFrame
-        # return pd.DataFrame
     return df
 
 

@@ -22,9 +22,9 @@ sys.path.extend([cwd, rootPath])
 import config
 out = reload(config)
 from config import *
-import bulk
-out = reload(bulk)
-from bulk import *
+import extract
+out = reload(extract)
+from extract import *
 import flatten
 out = reload(flatten)
 from flatten import *
@@ -49,8 +49,8 @@ class simfin:
 
         self.csv_file = os.path.join(self.data_dir, csv_file)
 
-        self.bulk_df = pd.DataFrame()
-        self.bulk_df_file = os.path.join(self.data_dir, 'bulk.zip')
+        self.extract_df = pd.DataFrame()
+        self.extract_df_file = os.path.join(self.data_dir, 'extract.zip')
 
         self.flatten_df = pd.DataFrame()
         self.flatten_df_file = os.path.join(self.data_dir, 'flatten.zip')
@@ -61,21 +61,21 @@ class simfin:
         self.tsfresh_df = pd.DataFrame()
         self.tsfresh_df_file = os.path.join(self.data_dir, 'tsfresh.zip')
 
-    def bulk(self):
+    def extract(self):
 
         # Load previously saved DF if exists
-        if not self.force and os.path.exists(self.bulk_df_file):
-            if os.path.exists(self.bulk_df_file):
-                log.info("Loading saved bulk data set ...")
-                self.bulk_df = pd.read_pickle(self.bulk_df_file)
+        if not self.force and os.path.exists(self.extract_df_file):
+            if os.path.exists(self.extract_df_file):
+                log.info("Loading saved extract data set ...")
+                self.extract_df = pd.read_pickle(self.extract_df_file)
                 return self
 
-        self.bulk_df = bulk_extract(self.csv_file)
-        self.bulk_df.to_pickle(self.bulk_df_file)
+        self.extract_df = extract_bulk(self.csv_file)
+        self.extract_df.to_pickle(self.extract_df_file)
 
         return self
 
-    # Flatten bulk simfin dataset into quarterly
+    # Flatten extracted bulk simfin dataset into quarterly
     def flatten(self):
 
         # Load previously saved DF if exists
@@ -85,15 +85,15 @@ class simfin:
             return self
 
         # If empty bulk data, load previously saved or throw error
-        if self.bulk_df.empty:
-            if os.path.exists(self.bulk_df_file):
-                log.info("Loading saved bulk data set ...")
-                self.bulk_df = pd.read_pickle(self.bulk_df_file)
+        if self.extract_df.empty:
+            if os.path.exists(self.extract_df_file):
+                log.info("Loading saved extract bulk data set ...")
+                self.extract_df = pd.read_pickle(self.extract_df_file)
             else:
-                raise Exception("No bulk data set.  Run bulk method")
+                raise Exception("No extracted bulk data set.  Run method extract()")
 
         log.info("Flattening SimFin data set into quarterly ...")
-        self.flatten_df = flatten_by_ticker(self.bulk_df, self.flatten_by)
+        self.flatten_df = flatten_by_ticker(self.extract_df, self.flatten_by)
         self.flatten_df.to_pickle(self.flatten_df_file)
 
         return self
@@ -144,7 +144,7 @@ class simfin:
 # table = pd.read_pickle('data/table.zip')
 # flws = table.query('Ticker == "FLWS"')
 
-sf = simfin().bulk().flatten()
+sf = simfin().extract().flatten()
 # sf = simfin(force=True).indicators(flws)
 
 # Remove log
