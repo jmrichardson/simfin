@@ -44,7 +44,8 @@ class simfin:
         self.force = force
         self.data_dir = data_dir
         self.tmp_dir = tmp_dir
-        self.min_quarters = 12
+        self.min_quarters = min_quarters
+        self.flatten_by = flatten_by
 
         self.csv_file = os.path.join(self.data_dir, csv_file)
 
@@ -74,7 +75,7 @@ class simfin:
 
         return self
 
-    # Flatten bulk simfin dataset by quarter
+    # Flatten bulk simfin dataset into quarterly
     def flatten(self):
 
         # Load previously saved DF if exists
@@ -91,8 +92,8 @@ class simfin:
             else:
                 raise Exception("No bulk data set.  Run bulk method")
 
-        log.info("Flattening SimFin data set by quarter ...")
-        self.flatten_df = flatten_by_ticker(self.bulk_df, self.min_quarters)
+        log.info("Flattening SimFin data set into quarterly ...")
+        self.flatten_df = flatten_by_ticker(self.bulk_df, self.min_quarters, self.flatten_by)
         self.flatten_df.to_pickle(self.flatten_df_file)
 
         return self

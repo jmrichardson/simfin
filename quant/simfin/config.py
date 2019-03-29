@@ -4,6 +4,8 @@ log_dir = "logs"
 tmp_dir = "tmp"
 data_dir = "data"
 csv_file = "output-semicolon-wide.csv"
+min_quarters = 12
+flatten_by = "Revenues"
 
 # Simfin key features
 simfinFeatures = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'EBITDA', 'Net Profit',
