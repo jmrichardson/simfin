@@ -4,7 +4,7 @@ import numpy as np
 from loguru import logger as log
 
 
-def by_ticker(df, min_quarters, flatten_by):
+def by_ticker(df, flatten_by):
 
     ticker = str(df['Ticker'].iloc[0])
     log.info("Processing {} ...".format(ticker))
@@ -51,15 +51,16 @@ def by_ticker(df, min_quarters, flatten_by):
     df = df[df[flatten_by].notnull()]
 
     # Must have min # of quarters
-    rows = len(df.index)
-    if rows < min_quarters:
-        log.warning("{} - Not enough quarter history:  Requires {}, Actual {}".format(ticker, min_quarters, rows))
-        return pd.DataFrame
+    # rows = len(df.index)
+    # if rows < min_quarters:
+        # log.warning("{} - Not enough quarter history:  Requires {}, Actual {}".format(ticker, min_quarters, rows))
+        # # return pd.DataFrame
+        # return pd.DataFrame
     return df
 
 
-def flatten_by_ticker(df, min_quarters, flatten_by):
-    df = df.groupby('Ticker').apply(by_ticker, min_quarters, flatten_by)
+def flatten_by_ticker(df, flatten_by):
+    df = df.groupby('Ticker').apply(by_ticker, flatten_by)
     df.reset_index(drop=True, inplace=True)
     df = df.replace([np.inf, -np.inf], np.nan)
     return df

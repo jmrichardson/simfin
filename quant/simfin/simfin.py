@@ -93,7 +93,7 @@ class simfin:
                 raise Exception("No bulk data set.  Run bulk method")
 
         log.info("Flattening SimFin data set into quarterly ...")
-        self.flatten_df = flatten_by_ticker(self.bulk_df, self.min_quarters, self.flatten_by)
+        self.flatten_df = flatten_by_ticker(self.bulk_df, self.flatten_by)
         self.flatten_df.to_pickle(self.flatten_df_file)
 
         return self
