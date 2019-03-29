@@ -4,20 +4,20 @@ from loguru import logger as log
 
 
 # Add momentum indicator on features
-def mom(df, features, count):
-    for feature in features:
+def mom(df, key_features, count):
+    for feature in key_features:
         if df[feature].isnull().all():
             continue
         for i in range(1, count + 1, 1):
             try:
-                df[feature + ' Mom ' + str(i) + 'Q'] = talib.MOM(np.array(df[feature]), i)
+                df['Ind_Mom_' + str(i) + 'Q_' + feature] = talib.MOM(np.array(df[feature]), i)
             except Exception as e:
                 log.warning("Momentum " + str(feature) + ": " + str(e))
     return df
 
 
 # Calculate trailing twelve months
-def TTM(df, features, roll, days):
+def TTM(df, key_features, roll, days):
     def lastYearSum(series):
         # Must have x previous inputs
         if len(series) < roll:
@@ -31,33 +31,33 @@ def TTM(df, features, roll, days):
             else:
                 return series.sum()
 
-    for feature in features:
+    for feature in key_features:
         if df[feature].isnull().all():
             continue
         try:
-            df[feature + ' TTM'] = df[feature].rolling(roll, min_periods=1).apply(lastYearSum, raw=False)
+            df['Ind_TTM_' + feature] = df[feature].rolling(roll, min_periods=1).apply(lastYearSum, raw=False)
         except:
             log.warning("Unable to add TTM for: " + feature)
     return df
 
 
 # Process data by ticker
-def by_ticker(df, simfinFeatures):
+def by_ticker(df, key_features):
     log.info("Processing " + str(df['Ticker'].iloc[0]) + "...")
 
     # Sort dataframe by date
     df = df.sort_values(by='Date')
 
     # Trailing twelve month
-    df = TTM(df, simfinFeatures, 4, 370)
+    df = TTM(df, key_features, 4, 370)
 
     # Momentum
-    df = mom(df, simfinFeatures, 6)
+    df = mom(df, key_features, 6)
     return df
 
 
-def indicators_by_ticker(df, simfinFeatures):
-    df = df.groupby('Ticker').apply(by_ticker, simfinFeatures)
+def indicators_by_ticker(df, key_features):
+    df = df.groupby('Ticker').apply(by_ticker, key_features)
     df.reset_index(drop=True, inplace=True)
     return df
 

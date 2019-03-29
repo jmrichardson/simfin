@@ -1,14 +1,12 @@
 
 # Vars
-log_dir = "logs"
-tmp_dir = "tmp"
-data_dir = "data"
 csv_file = "output-semicolon-wide.csv"
 min_quarters = 12
 flatten_by = "Revenues"
+force = False
 
 # Simfin key features
-simfinFeatures = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'EBITDA', 'Net Profit',
+key_features = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'EBITDA', 'Net Profit',
             'Cash & Cash Equivalents', 'Receivables', 'Current Assets',  'Total Assets', 'Short term debt', 'Accounts Payable',
             'Current Liabilities', 'Long Term Debt', 'Total Liabilities', 'Share Capital', 'Total Equity',
             'Free Cash Flow', 'Gross Margin', 'Operating Margin', 'Net Profit Margin', 'Return on Equity',
