@@ -34,9 +34,6 @@ out = reload(tsf)
 from tsf import *
 
 
-# Enable logging
-log_file = os.path.join('logs', "simfin_{time:YYYY-MM-DD_HH-mm-ss}.log")
-lid = log.add(log_file, retention=5)
 
 
 class simfin:
@@ -45,7 +42,7 @@ class simfin:
         self.force = force
         self.tmp_dir = 'tmp'
         self.data_dir = 'data'
-        self.min_quarters = min_quarters
+        self.min_history = min_history
         self.flatten_by = flatten_by
 
         self.data_df = pd.DataFrame
@@ -71,6 +68,7 @@ class simfin:
             if os.path.exists(self.extract_df_file):
                 log.info("Loading saved extract data set ...")
                 self.extract_df = pd.read_pickle(self.extract_df_file)
+                self.data_df = self.extract_df
                 return self
 
         self.extract_df = extract_bulk(self.csv_file)
@@ -125,10 +123,6 @@ class simfin:
             else:
                 raise Exception('Empty data frame.  Run flatten() or provide data frame')
 
-        # Check for minimum quarter history
-        if len(self.data_df) < self.min_quarters:
-            raise Exception('Must have minimum quarters of history: ' + str(self.min_quarters))
-
         log.info("Add indicators by ticker ...")
         self.indicators_df = indicators_by_ticker(self.data_df, key_features)
         self.data_df = self.indicators_df
@@ -155,7 +149,7 @@ class simfin:
                 raise Exception('Empty data frame.  Run flatten() or provide data frame')
 
         log.info("Add tsfresh indicators by ticker ...")
-        self.tsf_df = tsf_by_ticker(self.data_df, key_features)
+        self.tsf_df = tsf_by_ticker(self.data_df, key_features, self.min_history)
         self.data_df = self.tsf_df
         self.tsf_df.to_pickle(file)
         return self
@@ -165,16 +159,25 @@ class simfin:
         self.data_df.to_csv(path)
         log.info("CSV file written: {}".format(path))
 
+    def query(self, tickers):
+        log.info("Filtering data set")
+        return self.data_df[self.data_df['Ticker'].isin(tickers)]
 
-# table = pd.read_pickle('data/table.zip')
-# flws = table.query('Ticker == "FLWS"')
 
-# sf = simfin().extract().flatten().indicators().tsf()
-# sf = simfin().indicators(flws)
-# sf = simfin().flatten().csv("test.csv")
-sf = simfin().flatten().tsf()
+if __name__ == "__main__":
 
-# Remove log
-log.remove(lid)
+    # Enable logging
+    log_file = os.path.join('logs', "simfin_{time:YYYY-MM-DD_HH-mm-ss}.log")
+    lid = log.add(log_file, retention=5)
+
+    sf = simfin().flatten().tsf()
+
+    # sf = simfin().indicators(flws)
+    # sf = simfin().flatten().csv("test.csv")
+    # df = simfin().flatten().query(['FLWS'])
+    # df = simfin().flatten().query(['ALJJ'])
+
+    # Remove log
+    log.remove(lid)
 
 
