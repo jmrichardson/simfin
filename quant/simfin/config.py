@@ -12,5 +12,5 @@ key_features = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'EBITDA', 'Net Profit
             'Free Cash Flow', 'Gross Margin', 'Operating Margin', 'Net Profit Margin', 'Return on Equity',
             'Return on Assets', 'Current Ratio', 'Liabilities to Equity Ratio', 'Debt to Assets Ratio',
             'EV / EBITDA', 'EV / Sales', 'Book to Market', 'Operating Income / EV', 'Enterprise Value',
-            'Basic Earnings Per Share', 'Common Earnings Per Share', 'Diluted Earnings Per Share',
-            'Basic PE', 'Common PE', 'Diluted PE']
+            'Flat_Basic Earnings Per Share', 'Flat_Common Earnings Per Share', 'Flat_Diluted Earnings Per Share',
+            'Flat_Basic PE', 'Flat_Common PE', 'Flat_Diluted PE']

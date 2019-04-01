@@ -7,7 +7,7 @@ from multiprocessing import freeze_support
 
 
 # Process data by ticker
-def by_ticker(df, key_features, min_history):
+def by_ticker(df, key_features):
 
     # Log ticker
     ticker = str(df['Ticker'].iloc[0])
@@ -15,8 +15,8 @@ def by_ticker(df, key_features, min_history):
     log.info("Ticker: " + ticker)
 
     rows = len(df)
-    if rows < min_history:
-        log.warning("  Not enough history(rows): {} actual, {} minimum".format(rows, min_history))
+    if rows < 2:
+        log.warning("Not enough history(rows): {} actual, 2 required".format(rows))
         return pd.DataFrame
 
     # Sort dataframe by date
@@ -63,9 +63,9 @@ def by_ticker(df, key_features, min_history):
     return df
 
 
-def tsf_by_ticker(df, key_features, min_history):
+def tsf_by_ticker(df, key_features):
     log.info("Add tsfresh calculations by ticker ...")
-    data = df.groupby('Ticker').apply(by_ticker, key_features, min_history)
+    data = df.groupby('Ticker').apply(by_ticker, key_features)
     data.reset_index(drop=True, inplace=True)
     return data
 

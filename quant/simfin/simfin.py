@@ -32,6 +32,9 @@ from indicators import *
 import tsf
 out = reload(tsf)
 from tsf import *
+import missing
+out = reload(missing)
+from missing import *
 
 
 
@@ -106,69 +109,32 @@ class simfin:
         return self
 
     # Add indicators for each feature
-    def indicators(self, *args):
-
-        # Load previously saved indicators
-        if not self.force and os.path.exists(self.indicators_df_file):
-            log.info("Loading saved indicator data set ...")
-            self.indicators_df = pd.read_pickle(self.indicators_df_file)
-            self.data_df = self.indicators_df
-            return self
-
-        # If empty data_df, must provide in method call
-        if self.data_df.empty:
-            if args:
-                if isinstance(args[0], pd.DataFrame):
-                    self.data_df = args[0]
-                else:
-                    raise Exception('First argument must be data frame')
-            else:
-                raise Exception('Empty data frame.  Run flatten() or provide data frame')
+    def indicators(self):
 
         log.info("Add indicators by ticker ...")
         self.indicators_df = indicators_by_ticker(self.data_df, key_features)
         self.data_df = self.indicators_df
-        self.indicators_df.to_pickle(self.indicators_df_file)
         return self
-
 
     def missing(self):
-        # Load previously saved
-        if not self.force and os.path.exists(self.missing_df_file):
-            log.info("Loading saved tsfresh data set ...")
-            self.missing_df = pd.read_pickle(self.missing_df_file)
-            self.data_df = self.missing_df
-            return self
 
-
+        log.info("Add missing rows ...")
+        self.missing_df = missing_by_ticker(self.data_df)
+        self.data_df = self.missing_df
         return self
 
-    def tsf(self, *args):
-
-        # Load previously saved tsf
-        if not self.force and os.path.exists(self.tsf_df_file):
-            log.info("Loading saved tsfresh data set ...")
-            self.tsf_df = pd.read_pickle(self.tsf_df_file)
-            self.data_df = self.tsf_df
-            return self
-
-        # If empty data_df, must provide in method call
-        if self.data_df.empty:
-            if args:
-                if isinstance(args[0], pd.DataFrame):
-                    self.data_df = args[0]
-                else:
-                    raise Exception('First argument must be data frame')
-            else:
-                raise Exception('Empty data frame.  Run flatten() or provide data frame')
+    def tsf(self):
 
         log.info("Add tsfresh indicators by ticker ...")
-        self.tsf_df = tsf_by_ticker(self.data_df, key_features, self.min_history)
+        self.tsf_df = tsf_by_ticker(self.data_df, key_features)
         self.data_df = self.tsf_df
-        self.tsf_df.to_pickle(file)
         return self
 
-    def target(self, field='SPMA', lag=1, thresh=None):
+    def target(self, field='Flat_SPMA', lag=1, thresh=None):
+
+        log.info("Add target ...")
+        self.target_df = target_by_ticker(self.data_df, field, lag, thresh)
+        self.data_df = self.target_df
         return self
 
 
@@ -183,11 +149,6 @@ class simfin:
         self.data_df = self.data_df[self.data_df['Ticker'].isin(tickers)]
         return self
 
-    def df(self):
-        log.info("Returning data set")
-        return self.data_df
-
-
 
 
 
@@ -199,12 +160,16 @@ if __name__ == "__main__":
 
     # sf = simfin().flatten().tsf()
     # sf = simfin().extract().csv("data.csv")
-    sf = simfin().flatten().csv("look.csv")
-    # sf = simfin().flatten()
+    # sf = simfin().flatten().csv("look.csv")
 
     # sf = simfin().indicators(flws)
-    # df = simfin().flatten().query(['FLWS']).csv('flws.csv').df()
+    # df = simfin().flatten().query(['FLWS']).csv('flws.csv').data_df
     # df = simfin().flatten().query(['ALJJ'])
+
+
+    df = simfin().flatten().query(['FLWS','TSLA']).missing().indicators().csv()
+
+    # df = simfin().flatten().data_df
 
     # Remove log
     log.remove(lid)

@@ -1,6 +1,7 @@
 from datetime import date
 from loguru import logger as log
 import pandas as pd
+import numpy as np
 
 # Check for missing quarters, insert null row and column
 def by_ticker(df):
