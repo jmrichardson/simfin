@@ -35,6 +35,9 @@ from tsf import *
 import missing
 out = reload(missing)
 from missing import *
+import target
+out = reload(target)
+from target import *
 
 
 
@@ -167,7 +170,8 @@ if __name__ == "__main__":
     # df = simfin().flatten().query(['ALJJ'])
 
 
-    df = simfin().flatten().query(['FLWS','TSLA']).missing().indicators().csv()
+    # df = simfin().flatten().query(['FLWS','TSLA']).missing().indicators().tsf().csv()
+    df = simfin().flatten().query(['FLWS','TSLA']).missing().target().csv()
 
     # df = simfin().flatten().data_df
 
