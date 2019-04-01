@@ -43,7 +43,6 @@ class simfin:
         self.tmp_dir = 'tmp'
         self.data_dir = 'data'
         self.min_history = min_history
-        self.flatten_by = flatten_by
 
         self.data_df = pd.DataFrame
 
@@ -60,6 +59,9 @@ class simfin:
 
         self.tsf_df = pd.DataFrame()
         self.tsf_df_file = os.path.join(self.tmp_dir, 'tsf.zip')
+
+        self.missing_df = pd.DataFrame()
+        self.missing_df_file = os.path.join(self.tmp_dir, 'missing.zip')
 
     def extract(self):
 
@@ -97,7 +99,7 @@ class simfin:
                 raise Exception("No extracted data set.  Run method extract()")
 
         log.info("Flattening SimFin data set into quarterly ...")
-        self.flatten_df = flatten_by_ticker(self.data_df, self.flatten_by)
+        self.flatten_df = flatten_by_ticker(self.data_df)
         self.data_df = self.flatten_df
         self.flatten_df.to_pickle(self.flatten_df_file)
 
@@ -129,6 +131,18 @@ class simfin:
         self.indicators_df.to_pickle(self.indicators_df_file)
         return self
 
+
+    def missing(self):
+        # Load previously saved
+        if not self.force and os.path.exists(self.missing_df_file):
+            log.info("Loading saved tsfresh data set ...")
+            self.missing_df = pd.read_pickle(self.missing_df_file)
+            self.data_df = self.missing_df
+            return self
+
+
+        return self
+
     def tsf(self, *args):
 
         # Load previously saved tsf
@@ -154,14 +168,27 @@ class simfin:
         self.tsf_df.to_pickle(file)
         return self
 
-    def csv(self, file_name):
+    def target(self, field='SPMA', lag=1, thresh=None):
+        return self
+
+
+    def csv(self, file_name='data.csv'):
         path = os.path.join('data', file_name)
+        log.info("Writing csv file: {}".format(path))
         self.data_df.to_csv(path)
-        log.info("CSV file written: {}".format(path))
+        return self
 
     def query(self, tickers):
         log.info("Filtering data set")
-        return self.data_df[self.data_df['Ticker'].isin(tickers)]
+        self.data_df = self.data_df[self.data_df['Ticker'].isin(tickers)]
+        return self
+
+    def df(self):
+        log.info("Returning data set")
+        return self.data_df
+
+
+
 
 
 if __name__ == "__main__":
@@ -170,11 +197,13 @@ if __name__ == "__main__":
     log_file = os.path.join('logs', "simfin_{time:YYYY-MM-DD_HH-mm-ss}.log")
     lid = log.add(log_file, retention=5)
 
-    sf = simfin().flatten().tsf()
+    # sf = simfin().flatten().tsf()
+    # sf = simfin().extract().csv("data.csv")
+    sf = simfin().flatten().csv("look.csv")
+    # sf = simfin().flatten()
 
     # sf = simfin().indicators(flws)
-    # sf = simfin().flatten().csv("test.csv")
-    # df = simfin().flatten().query(['FLWS'])
+    # df = simfin().flatten().query(['FLWS']).csv('flws.csv').df()
     # df = simfin().flatten().query(['ALJJ'])
 
     # Remove log
