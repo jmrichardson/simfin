@@ -33,7 +33,7 @@ def by_ticker(df, key_features):
         for feature in key_features:
             log.info("  Feature: " + feature)
 
-            # Must have more than one non null values in feature
+            # Must have at least 2 rows of data
             if df[feature].count() <= 1:
                 log.warning("  Feature count <= 1: " + feature)
                 continue

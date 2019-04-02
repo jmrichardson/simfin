@@ -26,9 +26,9 @@ from extract import *
 import flatten
 out = reload(flatten)
 from flatten import *
-import indicators
-out = reload(indicators)
-from indicators import *
+import features
+out = reload(features)
+from features import *
 import tsf
 out = reload(tsf)
 from tsf import *
@@ -60,14 +60,9 @@ class simfin:
         self.flatten_df = pd.DataFrame()
         self.flatten_df_file = os.path.join(self.tmp_dir, 'flatten.zip')
 
-        self.indicators_df = pd.DataFrame()
-        self.indicators_df_file = os.path.join(self.tmp_dir, 'indicators.zip')
-
+        self.features_df = pd.DataFrame()
         self.tsf_df = pd.DataFrame()
-        self.tsf_df_file = os.path.join(self.tmp_dir, 'tsf.zip')
-
         self.missing_df = pd.DataFrame()
-        self.missing_df_file = os.path.join(self.tmp_dir, 'missing.zip')
 
     def extract(self):
 
@@ -111,12 +106,12 @@ class simfin:
 
         return self
 
-    # Add indicators for each feature
-    def indicators(self):
+    # Add features for each feature
+    def features(self):
 
-        log.info("Add indicators by ticker ...")
-        self.indicators_df = indicators_by_ticker(self.data_df, key_features)
-        self.data_df = self.indicators_df
+        log.info("Add features by ticker ...")
+        self.features_df = features_by_ticker(self.data_df, key_features)
+        self.data_df = self.features_df
         return self
 
     def missing(self):
@@ -128,7 +123,7 @@ class simfin:
 
     def tsf(self):
 
-        log.info("Add tsfresh indicators by ticker ...")
+        log.info("Add tsfresh fields by ticker ...")
         self.tsf_df = tsf_by_ticker(self.data_df, key_features)
         self.data_df = self.tsf_df
         return self
@@ -161,19 +156,13 @@ if __name__ == "__main__":
     log_file = os.path.join('logs', "simfin_{time:YYYY-MM-DD_HH-mm-ss}.log")
     lid = log.add(log_file, retention=5)
 
-    # sf = simfin().flatten().tsf()
-    # sf = simfin().extract().csv("data.csv")
-    # sf = simfin().flatten().csv("look.csv")
 
-    # sf = simfin().indicators(flws)
     # df = simfin().flatten().query(['FLWS']).csv('flws.csv').data_df
-    # df = simfin().flatten().query(['ALJJ'])
+    # df = simfin().flatten().query(['FLWS','TSLA']).missing().features().tsf().csv()
+    # df = simfin().flatten().query(['FLWS','TSLA']).missing().target().csv()
+    df = simfin().flatten().query(['FLWS','TSLA']).missing().features().data_df
 
 
-    # df = simfin().flatten().query(['FLWS','TSLA']).missing().indicators().tsf().csv()
-    df = simfin().flatten().query(['FLWS','TSLA']).missing().target().csv()
-
-    # df = simfin().flatten().data_df
 
     # Remove log
     log.remove(lid)
