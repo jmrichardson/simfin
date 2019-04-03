@@ -32,14 +32,15 @@ from features import *
 import tsf
 out = reload(tsf)
 from tsf import *
-import missing
-out = reload(missing)
-from missing import *
+import missing_rows
+out = reload(missing_rows)
+from missing_rows import *
 import target
 out = reload(target)
 from target import *
-
-
+import process
+out = reload(process)
+from process import *
 
 
 class simfin:
@@ -48,7 +49,7 @@ class simfin:
         self.force = force
         self.tmp_dir = 'tmp'
         self.data_dir = 'data'
-        self.min_history = min_history
+        self.process_list = []
 
         self.data_df = pd.DataFrame
 
@@ -60,9 +61,6 @@ class simfin:
         self.flatten_df = pd.DataFrame()
         self.flatten_df_file = os.path.join(self.tmp_dir, 'flatten.zip')
 
-        self.features_df = pd.DataFrame()
-        self.tsf_df = pd.DataFrame()
-        self.missing_df = pd.DataFrame()
 
     def extract(self):
 
@@ -74,9 +72,8 @@ class simfin:
                 self.data_df = self.extract_df
                 return self
 
-        self.extract_df = extract_bulk(self.csv_file)
-        self.extract_df.to_pickle(self.extract_df_file)
-        self.data_df = self.extract_df
+        self.data_df = extract_bulk(self.csv_file)
+        self.data_df.to_pickle(self.extract_df_file)
 
         return self
 
@@ -100,9 +97,8 @@ class simfin:
                 raise Exception("No extracted data set.  Run method extract()")
 
         log.info("Flattening SimFin data set into quarterly ...")
-        self.flatten_df = flatten_by_ticker(self.data_df)
-        self.data_df = self.flatten_df
-        self.flatten_df.to_pickle(self.flatten_df_file)
+        self.data_df = flatten_by_ticker(self.data_df)
+        self.data_df.to_pickle(self.flatten_df_file)
 
         return self
 
@@ -110,30 +106,63 @@ class simfin:
     def features(self):
 
         log.info("Add features by ticker ...")
-        self.features_df = features_by_ticker(self.data_df, key_features)
-        self.data_df = self.features_df
+        self.data_df = features_by_ticker(self.data_df, key_features)
         return self
 
-    def missing(self):
+    def missing_rows(self):
 
         log.info("Add missing rows ...")
-        self.missing_df = missing_by_ticker(self.data_df)
-        self.data_df = self.missing_df
+        self.data_df = missing_rows_by_ticker(self.data_df)
         return self
+
 
     def tsf(self):
 
         log.info("Add tsfresh fields by ticker ...")
-        self.tsf_df = tsf_by_ticker(self.data_df, key_features)
-        self.data_df = self.tsf_df
+        self.data_df = tsf_by_ticker(self.data_df, key_features)
         return self
 
-    def target(self, field='Flat_SPMA', lag=1, thresh=None):
+    def target(self, field='Flat_SPQA', lag=-1, thresh=None):
 
         log.info("Add target ...")
-        self.target_df = target_by_ticker(self.data_df, field, lag, thresh)
-        self.data_df = self.target_df
+        self.data_df = target_by_ticker(self.data_df, field, lag, thresh)
         return self
+
+
+
+
+    def process(self):
+
+        # This needs to be in this module (not imported due to namespace issues)
+        def by_ticker(self):
+            ticker = str(df['Ticker'].iloc[0])
+            log.info("Processing {} ...".format(ticker))
+
+            # Remove rows with empty target
+            df = df[df[[c for c in df if c.startswith('Target_')]].notnull().iloc[:, 0]]
+
+            df = df.sort_values(by='Date').drop(['Date', 'Ticker'], axis=1)
+            X = df.filter(regex=r'^(?!Target_).*$')
+            y = df.filter(regex=r'Target_.*')
+
+            cols = X.columns
+
+            missing = FillMissing(cat_names=[], cont_names=cols)
+            missing(X)
+
+            normalize = Normalize(cat_names=[], cont_names=cols)
+            normalize(X)
+
+            df = pd.concat([X, y], axis=1)
+
+            return df
+
+        def process_by_ticker(self):
+            # df, missing, normalize = df.groupby('Ticker').apply(by_ticker)
+            self = self.data_df.groupby('Ticker').apply(by_ticker, self)
+
+        return self
+
 
 
     def csv(self, file_name='data.csv'):
@@ -158,9 +187,11 @@ if __name__ == "__main__":
 
 
     # df = simfin().flatten().query(['FLWS']).csv('flws.csv').data_df
-    # df = simfin().flatten().query(['FLWS','TSLA']).missing().features().tsf().csv()
-    # df = simfin().flatten().query(['FLWS','TSLA']).missing().target().csv()
-    df = simfin().flatten().query(['FLWS','TSLA']).missing().features().data_df
+    # df = simfin().flatten().query(['FLWS','TSLA']).missing_rows().features().tsf().csv()
+    # df = simfin().flatten().target().data_df
+    df = simfin().flatten().query(['FLWS','TSLA']).target().process().data_df
+    # df = simfin().flatten().query(['FLWS','TSLA']).target().data_df
+    # df = simfin().flatten().query(['FLWS','TSLA']).target().data_df
 
 
 

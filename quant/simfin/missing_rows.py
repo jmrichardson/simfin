@@ -34,7 +34,7 @@ def by_ticker(df):
 
     return df
 
-def missing_by_ticker(df):
+def missing_rows_by_ticker(df):
     df = df.groupby('Ticker').apply(by_ticker)
     df.reset_index(drop=True, inplace=True)
     df = df.replace([np.inf, -np.inf], np.nan)
@@ -44,7 +44,7 @@ def missing_by_ticker(df):
 if __name__ == "__main__":
     # df = simfin().extract().df()
     # df = df.query('Ticker == "A" | Ticker == "FLWS"')
-    df = missing_by_ticker(df)
+    df = missing_rows_by_ticker(df)
 
 
 
