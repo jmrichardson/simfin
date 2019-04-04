@@ -133,36 +133,10 @@ class simfin:
 
     def process(self):
 
-        # This needs to be in this module (not imported due to namespace issues)
-        def by_ticker(self):
-            ticker = str(df['Ticker'].iloc[0])
-            log.info("Processing {} ...".format(ticker))
-
-            # Remove rows with empty target
-            df = df[df[[c for c in df if c.startswith('Target_')]].notnull().iloc[:, 0]]
-
-            df = df.sort_values(by='Date').drop(['Date', 'Ticker'], axis=1)
-            X = df.filter(regex=r'^(?!Target_).*$')
-            y = df.filter(regex=r'Target_.*')
-
-            cols = X.columns
-
-            missing = FillMissing(cat_names=[], cont_names=cols)
-            missing(X)
-
-            normalize = Normalize(cat_names=[], cont_names=cols)
-            normalize(X)
-
-            df = pd.concat([X, y], axis=1)
-
-            return df
-
-        def process_by_ticker(self):
-            # df, missing, normalize = df.groupby('Ticker').apply(by_ticker)
-            self = self.data_df.groupby('Ticker').apply(by_ticker, self)
-
+        # Fill missing, normalize and save for tranforms for future prediction
+        log.info("Pre-processing data ...")
+        self.data_df, self.proc = process_by_ticker(self.data_df)
         return self
-
 
 
     def csv(self, file_name='data.csv'):
@@ -187,12 +161,15 @@ if __name__ == "__main__":
 
 
     # df = simfin().flatten().query(['FLWS']).csv('flws.csv').data_df
-    # df = simfin().flatten().query(['FLWS','TSLA']).missing_rows().features().tsf().csv()
+    # df = simfin().flatten().query(['FLWS']).data_df
+    # df = simfin().flatten().query(['TSLA']).data_df
+    # df = simfin().flatten().query(['FLWS','TSLA']).data_df
+    df = simfin().flatten().query(['FLWS','TSLA']).missing_rows().data_df
+    # df = simfin().flatten().query(['TSLA']).missing_rows().data_df
     # df = simfin().flatten().target().data_df
-    df = simfin().flatten().query(['FLWS','TSLA']).target().process().data_df
-    # df = simfin().flatten().query(['FLWS','TSLA']).target().data_df
-    # df = simfin().flatten().query(['FLWS','TSLA']).target().data_df
-
+    # df = simfin().flatten().query(['FLWS','TSLA']).data_df
+    # new  = simfin().flatten().query(['FLWS','TSLA']).target().process()
+    # df = simfin().flatten().query(['FLWS','TSLA']).target().process().data_df
 
 
     # Remove log
