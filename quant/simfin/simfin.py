@@ -41,6 +41,9 @@ from target import *
 import process
 out = reload(process)
 from process import *
+import history
+out = reload(history)
+from history import *
 
 
 class simfin:
@@ -138,6 +141,13 @@ class simfin:
         self.data_df, self.proc = process_by_ticker(self.data_df)
         return self
 
+    def history(self):
+
+        # Fill missing, normalize and save for tranforms for future prediction
+        log.info("Getting history ...")
+        self.data_df = history_by_ticker(self.data_df)
+        return self
+
 
     def csv(self, file_name='data.csv'):
         path = os.path.join('data', file_name)
@@ -164,7 +174,8 @@ if __name__ == "__main__":
     # df = simfin().flatten().query(['FLWS']).data_df
     # df = simfin().flatten().query(['TSLA']).data_df
     # df = simfin().flatten().query(['FLWS','TSLA']).data_df
-    df = simfin().flatten().query(['FLWS','TSLA']).missing_rows().data_df
+    # df = simfin().flatten().query(['FLWS','TSLA']).missing_rows().data_df
+    df = simfin().flatten().query(['FLWS','TSLA']).missing_rows().target().history().data_df
     # df = simfin().flatten().query(['TSLA']).missing_rows().data_df
     # df = simfin().flatten().target().data_df
     # df = simfin().flatten().query(['FLWS','TSLA']).data_df
