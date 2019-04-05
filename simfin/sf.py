@@ -53,10 +53,8 @@ class SimFin:
 
         self.csv_file = os.path.join(self.tmp_dir, csv_file)
 
-        self.extract_df = pd.DataFrame()
         self.extract_df_file = os.path.join(self.tmp_dir, 'extract.zip')
 
-        self.flatten_df = pd.DataFrame()
         self.flatten_df_file = os.path.join(self.tmp_dir, 'flatten.zip')
 
 
@@ -96,6 +94,7 @@ class SimFin:
 
         log.info("Flattening SimFin data set into quarterly ...")
         self.data_df = flatten_by_ticker(self.data_df)
+        self.flatten_df = self.data_df
         self.data_df.to_pickle(self.flatten_df_file)
 
         return self
@@ -105,12 +104,14 @@ class SimFin:
 
         log.info("Add features by ticker ...")
         self.data_df = features_by_ticker(self.data_df, key_features)
+        self.features_df = self.data_df
         return self
 
     def missing_rows(self):
 
         log.info("Add missing rows ...")
         self.data_df = missing_rows_by_ticker(self.data_df)
+        self.missing_rows_df = self.data_df
         return self
 
 
@@ -118,12 +119,14 @@ class SimFin:
 
         log.info("Add tsfresh fields by ticker ...")
         self.data_df = tsf_by_ticker(self.data_df, key_features)
+        self.tsf_df = self.data_df
         return self
 
     def target(self, field='Flat_SPQA', lag=-4, thresh=None):
 
         log.info("Add target ...")
         self.data_df = target_by_ticker(self.data_df, field, lag, thresh)
+        self.target_df = self.data_df
         return self
 
     def process(self):
@@ -131,6 +134,7 @@ class SimFin:
         # Fill missing, normalize and save for tranforms for future prediction
         log.info("Pre-processing data ...")
         self.data_df, self.proc = process_by_ticker(self.data_df)
+        self.process_df = self.data_df
         return self
 
     def history(self):
@@ -138,6 +142,7 @@ class SimFin:
         # Fill missing, normalize and save for tranforms for future prediction
         log.info("Getting history ...")
         self.data_df = history_by_ticker(self.data_df)
+        self.history_df = self.data_df
         return self
 
     def csv(self, file_name='data.csv'):
