@@ -1,30 +1,31 @@
-from sklearn.model_selection import KFold
-from sklearn.ensemble import RandomForestRegressor
-from loguru import logger as log
-import re
-import os
-import sys
-from importlib import reload
-
-# Set current working directory (except for interactive shell)
-try:
-    cwd = os.path.dirname(os.path.realpath(__file__))
-except:
-    cwd = 'd:/projects/quant/quant/simfin/mod_model'
-
-# Extend path for local imports
-os.chdir(cwd)
-rootPath = re.sub(r"(.*quant).*", r"\1", cwd)
-sys.path.extend([cwd, rootPath])
-
-import simfin
-# out = reload(simfin)
 from simfin import *
 
+from sklearn.model_selection import cross_val_score, GroupKFold
+from sklearn.ensemble import RandomForestRegressor
+from loguru import logger as log
 
-df = SimFin().load('rf').data_df
+
+df = SimFin().load('rf2').data_df
+
+# Get rows where target is not null
+# df = df[df['Target'].notnull()]
+
+# Get X: Drop date, ticker and target
+groups = df['Ticker']
+
+X = df.sort_values(by='Date').drop(['Date', 'Ticker'], axis=1)
+X = X.filter(regex=r'^(?!Target).*$')
+
+# Get y
+y = df.filter(regex=r'Target.*').values.ravel()
 
 
-import inspect
-import simfin
-[m[0] for m in inspect.getmembers(simfin, inspect.isclass) if m[1].__module__ == 'SimFin']
+rf = RandomForestRegressor(n_estimators=10, n_jobs=-1)
+
+gkf = GroupKFold(n_splits=5)
+
+
+scores = cross_val_score(rf, X, y, cv=gkf, groups=groups, scoring='r2')
+
+
+

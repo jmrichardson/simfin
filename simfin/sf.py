@@ -1,55 +1,49 @@
 import pandas as pd
 from loguru import logger as log
-import re
-import os
-import sys
 import pickle
 from importlib import reload
-
-# Set current working directory (except for interactive shell)
-try:
-    cwd = os.path.dirname(os.path.realpath(__file__))
-except:
-    cwd = 'd:/projects/quant/quant/simfin'
-
-# Extend path for local imports
-os.chdir(cwd)
-rootPath = re.sub(r"(.*quant).*", r"\1", cwd)
-sys.path.extend([rootPath, cwd, cwd + '/mod_data', cwd + '/mod_model'])
 
 # Import helper modules - FORCE RELOAD DURING TESTING - REMOVE THIS
 import config
 out = reload(config)
 from config import *
-import extract
-out = reload(extract)
-from extract import *
-import flatten
-out = reload(flatten)
-from flatten import *
-import features
-out = reload(features)
-from features import *
-import tsf
-out = reload(tsf)
-from tsf import *
-import missing_rows
-out = reload(missing_rows)
-from missing_rows import *
-import target
-out = reload(target)
-from target import *
-import process
-out = reload(process)
-from process import *
-import history
-out = reload(history)
-from history import *
 
+import mod_data.extract
+out = reload(mod_data.extract)
+from mod_data.extract import *
+
+import mod_data.flatten
+out = reload(mod_data.flatten)
+from mod_data.flatten import *
+
+import mod_data.features
+out = reload(mod_data.features)
+from mod_data.features import *
+
+import mod_data.tsf
+out = reload(mod_data.tsf)
+from mod_data.tsf import *
+
+import mod_data.missing_rows
+out = reload(mod_data.missing_rows)
+from mod_data.missing_rows import *
+
+import mod_data.target
+out = reload(mod_data.target)
+from mod_data.target import *
+
+import mod_data.process
+out = reload(mod_data.process)
+from mod_data.process import *
+
+import mod_data.history
+out = reload(mod_data.history)
+from mod_data.history import *
 
 class SimFin:
 
     def __init__(self):
+
         self.force = force
         self.tmp_dir = 'tmp'
         self.data_dir = 'data'
@@ -126,14 +120,11 @@ class SimFin:
         self.data_df = tsf_by_ticker(self.data_df, key_features)
         return self
 
-    def target(self, field='Flat_SPQA', lag=-1, thresh=None):
+    def target(self, field='Flat_SPQA', lag=-4, thresh=None):
 
         log.info("Add target ...")
         self.data_df = target_by_ticker(self.data_df, field, lag, thresh)
         return self
-
-
-
 
     def process(self):
 
@@ -148,7 +139,6 @@ class SimFin:
         log.info("Getting history ...")
         self.data_df = history_by_ticker(self.data_df)
         return self
-
 
     def csv(self, file_name='data.csv'):
         path = os.path.join('data', file_name)

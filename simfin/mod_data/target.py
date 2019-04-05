@@ -4,7 +4,7 @@ from loguru import logger as log
 
 def by_ticker(df, field, lag, thresh):
 
-    field_name = 'Target_' + field
+    field_name = 'Target'
     df[field_name] = df[field].pct_change(fill_method=None)
     df[field_name] = df[field_name].shift(lag)
     if thresh:

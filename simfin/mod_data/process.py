@@ -11,12 +11,15 @@ def by_ticker(df):
     ticker = str(df['Ticker'].iloc[0])
     log.info("Processing {} ...".format(ticker))
 
-    # Remove rows with empty target
-    df = df[df[[c for c in df if c.startswith('Target_')]].notnull().iloc[:, 0]]
+    df = df.sort_values(by='Date')
 
-    df = df.sort_values(by='Date').drop(['Date', 'Ticker'], axis=1)
-    X = df.filter(regex=r'^(?!Target_).*$')
-    y = df.filter(regex=r'Target_.*')
+    # Remove rows with empty target
+    df = df[df[[c for c in df if c.startswith('Target')]].notnull().iloc[:, 0]]
+
+    index = df.loc[:, ['Date', 'Ticker']]
+    df = df.drop(['Date', 'Ticker'], axis=1)
+    X = df.filter(regex=r'^(?!Target).*$')
+    y = df.filter(regex=r'^Target$')
 
     cols = X.columns
 
@@ -31,7 +34,7 @@ def by_ticker(df):
     X = X.astype(np.float64)
 
 
-    df = pd.concat([X, y], axis=1)
+    df = pd.concat([index, X, y], axis=1)
 
     return df
 
