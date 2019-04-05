@@ -30,6 +30,7 @@ def by_ticker(df):
                 else:
                     break
         start_date = end_date
+    df = df.sort_values(by='Date')
 
     return df
 
@@ -38,9 +39,8 @@ def missing_rows_by_ticker(df):
     df = df.assign(Missing_Row=0)
     df = df.groupby('Ticker').apply(by_ticker)
     df['Missing_Row'].fillna(0, inplace=True)
-    df.reset_index(drop=True, inplace=True)
     df = df.replace([np.inf, -np.inf], np.nan)
-    df = df.sort_values(by='Date')
+    df.reset_index(drop=True, inplace=True)
     return df
 
 

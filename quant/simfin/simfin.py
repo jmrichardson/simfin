@@ -175,8 +175,12 @@ if __name__ == "__main__":
     # df = simfin().flatten().query(['TSLA']).data_df
     # df = simfin().flatten().query(['FLWS','TSLA']).data_df
     # df = simfin().flatten().query(['FLWS','TSLA']).missing_rows().data_df
-    df = simfin().flatten().query(['FLWS','TSLA']).missing_rows().target().history().data_df
-    # df = simfin().flatten().query(['TSLA']).missing_rows().data_df
+    # df = simfin().flatten().query(['FLWS','TSLA']).missing_rows().target().process().data_df
+    # df = simfin().flatten().target().process().data_df
+    # df = simfin().flatten().query(['FLWS','TSLA']).target().process().data_df
+    df = simfin().flatten().target().process().data_df
+    # df = simfin().flatten().query(['FLWS','TSLA']).target().data_df
+    # df = simfin().flatten().query(['TSLA']).data_df
     # df = simfin().flatten().target().data_df
     # df = simfin().flatten().query(['FLWS','TSLA']).data_df
     # new  = simfin().flatten().query(['FLWS','TSLA']).target().process()

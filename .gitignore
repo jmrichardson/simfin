@@ -117,3 +117,6 @@ dmypy.json
 *.csv
 *.pickle
 *.zip
+tmp/
+*.pck
+*.ftr

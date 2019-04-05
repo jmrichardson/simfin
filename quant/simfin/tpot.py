@@ -1,40 +1,67 @@
 from tpot import TPOTRegressor
 from sklearn.model_selection import KFold
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.impute import SimpleImputer, MissingIndicator
 from fastai.tabular import *
 import numpy as np
+import pandas as pd
+from loguru import logger as log
+import re
+import os
+import sys
 
+# Set current working directory (except for interactive shell)
+try:
+    cwd = os.path.dirname(os.path.realpath(__file__))
+except:
+    cwd = 'd:/projects/quant/quant/simfin'
+
+# Extend path for local imports
+os.chdir(cwd)
+rootPath = re.sub(r"(.*quant).*", r"\1", cwd)
+sys.path.extend([cwd, rootPath])
+
+df = pd.read_pickle('df.pck')
+
+# Get rows where target is not null
 df = df[df['Target_Flat_SPQA'].notnull()]
 
-df = df.sort_values(by='Date').drop(['Date', 'Ticker'], axis=1)
+# Get X: Drop date, ticker and target
+# df = df.sort_values(by='Date').drop(['Date', 'Ticker'], axis=1)
 X = df.filter(regex=r'^(?!Target_).*$')
-y = df.filter(regex=r'Target_.*')
+
+# Get y
+y = df.filter(regex=r'Target_.*').values.ravel()
+
+
+# m = RandomForestRegressor(n_estimators=50, n_jobs=-1)
+# m.fit(X, y)
+# m.score(X,y)
 
 
 
-missing = MissingIndicator(missing_values=np.NaN)
-missing = missing.fit(X)
-missing_df = pd.DataFrame(missing.transform(X))
-
-impute = SimpleImputer(missing_values=np.NaN, strategy='median')
-impute = impute.fit(X)
-impute_df = pd.DataFrame(impute.transform(X), columns=X.columns)
+tpot_config = {
+    'sklearn.ensemble.RandomForestRegressor': {
+    }
+}
 
 
+# Train model
+# tpot = TPOTRegressor(generations=5, population_size=50, verbosity=2, cv=KFold(n_splits=5, random_state=None, shuffle=False))
+tpot = TPOTRegressor(generations=5, population_size=50, verbosity=2,
+                     cv=KFold(n_splits=5, random_state=None, shuffle=False),
+                     periodic_checkpoint_folder='tmp',
+                     early_stop=5,
+                     random_state=1,
+                     memory='tmp',
+                     warm_start=True,
+                     config_dict=tpot_config
+                     )
+tpot.fit(X, y)
 
-tfm = FillMissing(cat_names=[], cont_names=X.columns)
-tfm(X)
-
-norm = Normalize(cat_names=[], cont_names=X.columns)
-norm(X)
 
 
 
-
-
-impute = SimpleImputer()
-impute.fit(X)
-look = pd.DataFrame(impute.transform(X))
 
 
 dep_var='Target_Flat_SPQA'
@@ -44,8 +71,6 @@ dep_var='Target_Flat_SPQA'
 
 
 # tpot = TPOTRegressor(generations=5, population_size=50,verbosity=2, cv=TimeSeriesSplit(n_splits=15))
-tpot = TPOTRegressor(generations=5, population_size=50, verbosity=2, cv=KFold(n_splits=5, random_state=None, shuffle=False))
-tpot.fit(X, y)
 
 
 

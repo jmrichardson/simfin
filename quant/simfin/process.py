@@ -28,6 +28,9 @@ def by_ticker(df):
 
     proc[ticker] = {"missing": missing, "normalize": normalize}
 
+    X = X.astype(np.float64)
+
+
     df = pd.concat([X, y], axis=1)
 
     return df
@@ -36,6 +39,8 @@ def by_ticker(df):
 def process_by_ticker(df):
     df = df.groupby('Ticker').apply(by_ticker)
     df.reset_index(drop=True, inplace=True)
+    df = df.fillna(0)
+
     return [df, proc]
 
 if __name__ == "__main__":
