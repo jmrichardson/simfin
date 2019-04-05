@@ -21,7 +21,10 @@ os.chdir(cwd)
 rootPath = re.sub(r"(.*quant).*", r"\1", cwd)
 sys.path.extend([cwd, rootPath])
 
-df = pd.read_pickle('df.pck')
+
+si
+
+
 
 # Get rows where target is not null
 df = df[df['Target_Flat_SPQA'].notnull()]
@@ -55,10 +58,12 @@ tpot = TPOTRegressor(generations=5, population_size=50, verbosity=2,
                      random_state=1,
                      memory='tmp',
                      warm_start=True,
-                     config_dict=tpot_config
+                     # config_dict=tpot_config
                      )
 tpot.fit(X, y)
+print(tpot.score(X, y))
 
+tpot.export('tpot_titanic_pipeline2.py')
 
 
 

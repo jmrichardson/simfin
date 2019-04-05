@@ -3,6 +3,7 @@ from loguru import logger as log
 import re
 import os
 import sys
+import pickle
 from importlib import reload
 
 # Set current working directory (except for interactive shell)
@@ -14,7 +15,7 @@ except:
 # Extend path for local imports
 os.chdir(cwd)
 rootPath = re.sub(r"(.*quant).*", r"\1", cwd)
-sys.path.extend([cwd, rootPath])
+sys.path.extend([rootPath, cwd, cwd + '/mod_data', cwd + '/mod_model'])
 
 # Import helper modules - FORCE RELOAD DURING TESTING - REMOVE THIS
 import config
@@ -46,7 +47,7 @@ out = reload(history)
 from history import *
 
 
-class simfin:
+class SimFin:
 
     def __init__(self):
         self.force = force
@@ -160,7 +161,17 @@ class simfin:
         self.data_df = self.data_df[self.data_df['Ticker'].isin(tickers)]
         return self
 
+    def save(self, file='simfin'):
+        path = os.path.join(self.tmp_dir, file + '.pkl')
+        log.info(f"Saving to {path} ...")
+        pickle.dump(self, open(path, "wb"))
+        return self
 
+    def load(self, file='simfin'):
+        path = os.path.join(self.tmp_dir, file + '.pkl')
+        if os.path.exists(path):
+            log.info(f"Loading cache from {path} ...")
+            return pickle.load(open(path, "rb"))
 
 
 if __name__ == "__main__":
@@ -170,21 +181,22 @@ if __name__ == "__main__":
     lid = log.add(log_file, retention=5)
 
 
-    # df = simfin().flatten().query(['FLWS']).csv('flws.csv').data_df
-    # df = simfin().flatten().query(['FLWS']).data_df
-    # df = simfin().flatten().query(['TSLA']).data_df
-    # df = simfin().flatten().query(['FLWS','TSLA']).data_df
-    # df = simfin().flatten().query(['FLWS','TSLA']).missing_rows().data_df
-    # df = simfin().flatten().query(['FLWS','TSLA']).missing_rows().target().process().data_df
-    # df = simfin().flatten().target().process().data_df
-    # df = simfin().flatten().query(['FLWS','TSLA']).target().process().data_df
-    df = simfin().flatten().target().process().data_df
-    # df = simfin().flatten().query(['FLWS','TSLA']).target().data_df
-    # df = simfin().flatten().query(['TSLA']).data_df
-    # df = simfin().flatten().target().data_df
-    # df = simfin().flatten().query(['FLWS','TSLA']).data_df
-    # new  = simfin().flatten().query(['FLWS','TSLA']).target().process()
-    # df = simfin().flatten().query(['FLWS','TSLA']).target().process().data_df
+    # df = SimFin().flatten().query(['FLWS']).csv('flws.csv').data_df
+    # df = SimFin().flatten().query(['FLWS']).data_df
+    # df = SimFin().flatten().query(['TSLA']).data_df
+    # df = SimFin().flatten().query(['FLWS','TSLA']).data_df
+    # df = SimFin().flatten().query(['FLWS','TSLA']).missing_rows().data_df
+    # df = SimFin().flatten().query(['FLWS','TSLA']).missing_rows().target().process().data_df
+    # df = SimFin().flatten().target().process().data_df
+    # df = SimFin().flatten().query(['FLWS','TSLA']).target().process().data_df
+    sf = SimFin().flatten().target().process().save('rf')
+    # SimFin = SimFin().flatten().save()
+    # df = SimFin().flatten().query(['FLWS','TSLA']).target().data_df
+    # df = SimFin().flatten().query(['TSLA']).data_df
+    # df = SimFin().flatten().target().data_df
+    # df = SimFin().flatten().query(['FLWS','TSLA']).data_df
+    # new  = SimFin().flatten().query(['FLWS','TSLA']).target().process()
+    # df = SimFin().flatten().query(['FLWS','TSLA']).target().process().data_df
 
 
     # Remove log
