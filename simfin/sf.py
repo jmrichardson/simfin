@@ -122,7 +122,7 @@ class SimFin:
         self.tsf_df = self.data_df
         return self
 
-    def target(self, field='Flat_SPQA', lag=-4, thresh=None):
+    def target(self, field='Flat_SPQA', lag=-2, thresh=None):
 
         log.info("Add target ...")
         self.data_df = target_by_ticker(self.data_df, field, lag, thresh)
