@@ -1,72 +1,66 @@
-from tpot import TPOTRegressor
+from tpot import TPOTClassifier
+from sklearn.model_selection import GroupKFold, cross_validate, GridSearchCV
 from sklearn.model_selection import KFold
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.impute import SimpleImputer, MissingIndicator
-from fastai.tabular import *
-import numpy as np
 import pandas as pd
 from loguru import logger as log
-import re
-import os
-import sys
-
-# Set current working directory (except for interactive shell)
-try:
-    cwd = os.path.dirname(os.path.realpath(__file__))
-except:
-    cwd = 'd:/projects/quant/quant/simfin'
-
-# Extend path for local imports
-os.chdir(cwd)
-rootPath = re.sub(r"(.*quant).*", r"\1", cwd)
-sys.path.extend([cwd, rootPath])
+from deap import creator
+from tpot.export_utils import generate_pipeline_code, expr_to_tree
+import time
 
 
-si
-
-
+sf = pd.read_pickle('tmp/rf.pkl')
+df = sf.data_df
 
 # Get rows where target is not null
-df = df[df['Target_Flat_SPQA'].notnull()]
+# df = df[df['Target'].notnull()]
 
 # Get X: Drop date, ticker and target
-# df = df.sort_values(by='Date').drop(['Date', 'Ticker'], axis=1)
-X = df.filter(regex=r'^(?!Target_).*$')
+groups = df['Ticker']
+
+X = df.sort_values(by='Date').drop(['Date', 'Ticker'], axis=1)
+X = X.filter(regex=r'^(?!Target).*$')
 
 # Get y
-y = df.filter(regex=r'Target_.*').values.ravel()
+y = df.filter(regex=r'Target.*').values.ravel()
 
-
-# m = RandomForestRegressor(n_estimators=50, n_jobs=-1)
-# m.fit(X, y)
-# m.score(X,y)
-
-
+# gkf = GroupKFold(n_splits=4).split(X=X, y=y, groups=groups)
+# gkf = GroupKFold(n_splits=4)
 
 tpot_config = {
-    'sklearn.ensemble.RandomForestRegressor': {
-    }
+    'sklearn.ensemble.RandomForestClassifier',
+    'sklearn.tree.ExtraTreeClassifier',
 }
 
-
 # Train model
-# tpot = TPOTRegressor(generations=5, population_size=50, verbosity=2, cv=KFold(n_splits=5, random_state=None, shuffle=False))
-tpot = TPOTRegressor(generations=5, population_size=50, verbosity=2,
-                     cv=KFold(n_splits=5, random_state=None, shuffle=False),
+tpot = TPOTClassifier(generations=150, population_size=150, verbosity=3,
+                     cv=GroupKFold(n_splits=5),
                      periodic_checkpoint_folder='tmp',
+                     scoring='accuracy',
                      early_stop=5,
                      random_state=1,
                      memory='tmp',
                      warm_start=True,
                      # config_dict=tpot_config
+                     config_dict=None
                      )
-tpot.fit(X, y)
+
+# tpot.fit(X, y)
+start_time = time.time()
+tpot.fit(X, y, groups=groups)
+print("--- %s seconds ---" % (time.time() - start_time))
 print(tpot.score(X, y))
 
-tpot.export('tpot_titanic_pipeline2.py')
+tpot.export('model.py')
 
+print(dict(list(tpot.evaluated_individuals_.items())[0:3]))
+print(list(tpot.evaluated_individuals_.keys())[0])
 
-
+for pipeline_string in sorted(tpot.evaluated_individuals_.keys()):
+    deap_pipeline = creator.Individual.from_string(pipeline_string, tpot._pset)
+    sklearn_pipeline_str = generate_pipeline_code(expr_to_tree(deap_pipeline, tpot._pset), tpot.operators)
+    if sklearn_pipeline_str.count('StackingEstimator'):
+        print(sklearn_pipeline_str)
+        print('evaluated_pipeline_scores: {}\n'.format(tpot.evaluated_individuals_[pipeline_string]))
 
 
 dep_var='Target_Flat_SPQA'

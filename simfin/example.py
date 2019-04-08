@@ -4,10 +4,10 @@ import simfin
 out = reload(simfin)
 from simfin import *
 
-# df = pd.read_pickle('tmp/extract.zip')
 # df = df.query('Ticker == "FLWS"')
 
-sf = SimFin().flatten().features().target().process().save()
+# sf = SimFin().flatten().features().target().process().save()
+sf = pd.read_pickle('tmp/simfin.pkl')
 
 new = sf.target()
 df = new.data_df
@@ -25,7 +25,7 @@ field = 'Flat_SPQA'
 
 # sf = SimFin().flatten().query(['FLWS','TSLA']).target().process().save('rf')
 df = SimFin().flatten().query(['FLWS','TSLA']).data_df
-sf = SimFin().flatten().target().process().save('rf')
+sf = SimFin().flatten().target().save('rf')
 
 
 # df = SimFin().flatten().query(['FLWS','TSLA']).target().data_df
