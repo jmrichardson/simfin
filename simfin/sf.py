@@ -28,9 +28,13 @@ import mod_data.missing_rows
 out = reload(mod_data.missing_rows)
 from mod_data.missing_rows import *
 
-import mod_data.target
-out = reload(mod_data.target)
-from mod_data.target import *
+import mod_data.target_class
+out = reload(mod_data.target_class)
+from mod_data.target_class import *
+
+import mod_data.target_reg
+out = reload(mod_data.target_reg)
+from mod_data.target_reg import *
 
 import mod_data.process
 out = reload(mod_data.process)
@@ -40,6 +44,7 @@ import mod_data.history
 out = reload(mod_data.history)
 from mod_data.history import *
 
+
 class SimFin:
 
     def __init__(self):
@@ -48,6 +53,7 @@ class SimFin:
         self.tmp_dir = 'tmp'
         self.data_dir = 'data'
         self.process_list = []
+        self.models = []
 
         self.data_df = pd.DataFrame
 
@@ -122,11 +128,18 @@ class SimFin:
         self.tsf_df = self.data_df
         return self
 
-    def target(self, field='Flat_SPQA', lag=-2, thresh=None):
+    def target_class(self, field='Flat_SPQA', lag=-2, thresh=None):
 
         log.info("Add target ...")
-        self.data_df = target_by_ticker(self.data_df, field, lag, thresh)
-        self.target_df = self.data_df
+        self.data_df = target_class_by_ticker(self.data_df, field, lag, thresh)
+        self.target_class_df = self.data_df
+        return self
+
+    def target_reg(self, field='Flat_SPQA', lag=-2, thresh=None):
+
+        log.info("Add target ...")
+        self.data_df = target_reg_by_ticker(self.data_df, field, lag, thresh)
+        self.target__reg_df = self.data_df
         return self
 
     def process(self):
@@ -156,17 +169,20 @@ class SimFin:
         self.data_df = self.data_df[self.data_df['Ticker'].isin(tickers)]
         return self
 
-    def save(self, file='simfin'):
-        path = os.path.join(self.tmp_dir, file + '.pkl')
+    def save(self, path=os.path.join('tmp', 'simfin')):
         log.info(f"Saving to {path} ...")
         pickle.dump(self, open(path, "wb"))
         return self
 
-    def load(self, file='simfin'):
-        path = os.path.join(self.tmp_dir, file + '.pkl')
+    def load(self, path=os.path.join('tmp', 'simfin')):
         if os.path.exists(path):
             log.info(f"Loading cache from {path} ...")
             return pickle.load(open(path, "rb"))
+
+    def model(self):
+        self.data_df = history_by_ticker(self.data_df)
+        self.history_df = self.data_df
+        return self
 
 
 if __name__ == "__main__":

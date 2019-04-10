@@ -6,6 +6,7 @@ from loguru import logger as log
 from deap import creator
 from tpot.export_utils import generate_pipeline_code, expr_to_tree
 import time
+import numpy as np
 
 
 sf = pd.read_pickle('tmp/rf.pkl')
@@ -26,13 +27,31 @@ y = df.filter(regex=r'Target.*').values.ravel()
 # gkf = GroupKFold(n_splits=4).split(X=X, y=y, groups=groups)
 # gkf = GroupKFold(n_splits=4)
 
+# tpot_config = {
+    # 'sklearn.ensemble.RandomForestClassifier',
+    # 'sklearn.tree.ExtraTreeClassifier',
+# }
+
 tpot_config = {
-    'sklearn.ensemble.RandomForestClassifier',
-    'sklearn.tree.ExtraTreeClassifier',
+
+    'sklearn.ensemble.RandomForestClassifier': {
+        'n_estimators': [10, 50, 100],
+        'max_features': ['auto', 'sqrt', 'log2'],
+        'min_samples_leaf': [1, 5, 10, 20],
+        'max_depth': [5, 10, 15, 20, None],
+    },
+
+    'xgboost.XGBClassifier': {
+        'n_estimators': [10, 50, 100],
+        'max_depth': [5, 10, 15, 20, None],
+        'learning_rate': [1e-3, 1e-2, 1e-1, 0.5, 1.],
+        'subsample': np.arange(0.05, 1.01, 0.05),
+    },
+
 }
 
 # Train model
-tpot = TPOTClassifier(generations=150, population_size=150, verbosity=3,
+tpot = TPOTClassifier(generations=5, population_size=20, verbosity=3,
                      cv=GroupKFold(n_splits=5),
                      periodic_checkpoint_folder='tmp',
                      scoring='accuracy',
@@ -40,14 +59,15 @@ tpot = TPOTClassifier(generations=150, population_size=150, verbosity=3,
                      random_state=1,
                      memory='tmp',
                      warm_start=True,
-                     # config_dict=tpot_config
-                     config_dict=None
+                     config_dict=tpot_config,
                      )
 
 # tpot.fit(X, y)
 start_time = time.time()
 tpot.fit(X, y, groups=groups)
+
 print("--- %s seconds ---" % (time.time() - start_time))
+
 print(tpot.score(X, y))
 
 tpot.export('model.py')
