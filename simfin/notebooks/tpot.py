@@ -1,12 +1,11 @@
 from tpot import TPOTClassifier
-from sklearn.model_selection import GroupKFold, cross_validate, GridSearchCV
-from sklearn.model_selection import KFold
+from sklearn.model_selection import GroupKFold
 import pandas as pd
-from loguru import logger as log
 from deap import creator
 from tpot.export_utils import generate_pipeline_code, expr_to_tree
 import time
 import numpy as np
+from loguru import logger as log
 
 
 sf = pd.read_pickle('tmp/rf.pkl')

@@ -9,7 +9,17 @@ if not os.path.isfile('tmp/extract.zip'):
 else:
     simfin = SimFin().flatten()
 
+# simfin = simfin.query(['A']).csv()
 
+# Add target
+work = 'tmp/target_reg'
+if not os.path.isfile(work):
+    simfin = simfin.target_reg(field='Revenues', lag=-1).save(work)
+
+
+
+simfin.csv()
+df = simfin.data_df
 
 # Create model to predict target
 work = 'tmp/xgboost'
@@ -18,9 +28,11 @@ if not os.path.isfile(work):
 
 
 # Add target
-work = 'tmp/example'
+work = 'tmp/final_target'
 if not os.path.isfile(work):
-    simfin = simfin.target_class().save(work)
+    simfin = simfin.target_class(field='Flat_SPQA', lag=-2).save(work)
+
+
 
 
 

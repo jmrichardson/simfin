@@ -1,16 +1,48 @@
 import pandas as pd
 from loguru import logger as log
 import pickle
-from importlib import reload, import_module, util
+from importlib import reload
 
-# Import all modules (reload for testing purposes)
-import os
-from glob import glob
-for module in glob(os.path.join('modules', '*.py')):
-    module_name = os.path.basename(module)[:-3]
-    exec(f"import {module_name}")
-    exec(f"reload({module_name})")
-    exec(f"from {module_name} import *")
+# Import helper modules - FORCE RELOAD DURING TESTING - REMOVE THIS
+import config
+out = reload(config)
+from config import *
+
+import mod_data.extract
+out = reload(mod_data.extract)
+from mod_data.extract import *
+
+import mod_data.flatten
+out = reload(mod_data.flatten)
+from mod_data.flatten import *
+
+import mod_data.features
+out = reload(mod_data.features)
+from mod_data.features import *
+
+import mod_data.tsf
+out = reload(mod_data.tsf)
+from mod_data.tsf import *
+
+import mod_data.missing_rows
+out = reload(mod_data.missing_rows)
+from mod_data.missing_rows import *
+
+import mod_data.target_class
+out = reload(mod_data.target_class)
+from mod_data.target_class import *
+
+import mod_data.target_reg
+out = reload(mod_data.target_reg)
+from mod_data.target_reg import *
+
+import mod_data.process
+out = reload(mod_data.process)
+from mod_data.process import *
+
+import mod_data.history
+out = reload(mod_data.history)
+from mod_data.history import *
 
 
 class SimFin:
@@ -147,8 +179,8 @@ class SimFin:
             log.info(f"Loading cache from {path} ...")
             return pickle.load(open(path, "rb"))
 
-    def xgboost(self, learning_rate=0.01, max_depth=5, n_estimators=50, subsample=0.7):
-        self.data_df = (self.data_df)
+    def model(self):
+        self.data_df = history_by_ticker(self.data_df)
         self.history_df = self.data_df
         return self
 

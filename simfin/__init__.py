@@ -11,7 +11,7 @@ except:
 # Extend path for local imports
 os.chdir(cwd)
 rootPath = re.sub(r"(.*simfin).*", r"\1", cwd)
-sys.path.extend([rootPath, cwd, cwd + '/mod_data', cwd + '/mod_model'])
+sys.path.extend([rootPath, cwd, cwd + '/modules'])
 
 from sf import SimFin
 

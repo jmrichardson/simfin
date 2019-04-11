@@ -1,6 +1,6 @@
 import pandas as pd
 from loguru import logger as log
-from mod_data.extractor import *
+from modules.extractor import *
 
 
 def extract_bulk(csv_file):
