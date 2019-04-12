@@ -17,7 +17,7 @@ def by_ticker(df, field, lag):
     df.loc[:, field_name] = (df[field_name] - df[field]) / df[field]
 
     # Remove rows where target is nan
-    df = df[pd.notnull(df[field_name])]
+    # df = df[pd.notnull(df[field_name])]
 
     return df
 

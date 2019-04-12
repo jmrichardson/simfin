@@ -17,7 +17,7 @@ def by_ticker(df, field, lag, thresh):
     df.loc[:, field_name] = (df[field_name] - df[field]) / df[field]
 
     # Remove rows where target is nan
-    df = df[pd.notnull(df[field_name])]
+    # df = df[pd.notnull(df[field_name])]
 
 
     # If thresh, then 1 if > thresh, else 0

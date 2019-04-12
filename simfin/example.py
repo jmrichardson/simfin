@@ -9,16 +9,19 @@ if not os.path.isfile('tmp/extract.zip'):
 else:
     simfin = SimFin().flatten()
 
+df = simfin.data_df
+
 # simfin = simfin.query(['A']).csv()
 
 # Add target
 work = 'tmp/target_reg'
 if not os.path.isfile(work):
     simfin = simfin.target_reg(field='Revenues', lag=-1).save(work)
+else:
+    simfin = simfin.load(work)
 
 
-
-simfin.csv()
+# simfin.csv()
 df = simfin.data_df
 
 # Create model to predict target

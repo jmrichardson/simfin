@@ -73,7 +73,7 @@ class SimFin:
 
         return self
 
-    # Add features for each feature
+    # Add features (Indicators)
     def features(self):
 
         log.info("Add features by ticker ...")
@@ -147,9 +147,10 @@ class SimFin:
             log.info(f"Loading cache from {path} ...")
             return pickle.load(open(path, "rb"))
 
-    def xgboost(self, learning_rate=0.01, max_depth=5, n_estimators=50, subsample=0.7):
-        self.data_df = (self.data_df)
-        self.history_df = self.data_df
+    def predict_xgboost(self, lag=-1, learning_rate=0.01, max_depth=5, n_estimators=50, subsample=0.7):
+        log.info("Predicting features with xgboost ...")
+        self = predict_xgboost_features(self, lag, learning_rate, max_depth, n_estimators, subsample)
+        self.predict_xgboost_df = self.data_df
         return self
 
 
