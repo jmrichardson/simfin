@@ -17,16 +17,18 @@ if not os.path.isfile('tmp/extract.zip'):
 else:
     simfin = SimFin().flatten()
 
+# simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
 simfin = simfin.target_reg(field='Revenues', lag=-1)
-
 df = simfin.data_df
 
 
 X = df[pd.notnull(df['Target'])]
 groups = X['Ticker']
 y = X.filter(regex=r'Target.*').values.ravel()
+# y = X.filter(regex=r'Target.*')
 X = X.filter(regex=r'^(?!Target).*$')
 X = X.drop(['Date', 'Ticker'], axis=1)
+X = np.array(X)
 
 
 tpot_config = {
@@ -40,14 +42,12 @@ tpot_config = {
     },
 }
 
-tpot = TPOTRegressor(generations=5, population_size=20, verbosity=3,
+tpot = TPOTRegressor(generations=10, population_size=50, verbosity=3,
                      cv=GroupKFold(n_splits=5),
-                     scoring='accuracy',
                      early_stop=5,
                      random_state=1,
                      config_dict=tpot_config,
                      )
-
 
 tpot.fit(X, y, groups=groups)
 
