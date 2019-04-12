@@ -9,7 +9,10 @@ if not os.path.isfile('tmp/extract.zip'):
 else:
     simfin = SimFin().flatten()
 
-df = simfin.data_df
+# simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
+# df = simfin.data_df
+
+simfin = simfin.predict_rf_reg(lag=-1, max_depth=10, max_features="sqrt", min_samples_leaf=5, n_estimators=100)
 
 # simfin = simfin.query(['A']).csv()
 
