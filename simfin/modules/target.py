@@ -4,8 +4,8 @@ from loguru import logger as log
 
 def by_ticker(df, field, type, lag, thresh):
 
-    ticker = str(df['Ticker'].iloc[0])
-    log.info(f"Adding target field {field} for {ticker}...")
+    # ticker = str(df['Ticker'].iloc[0])
+    # log.info(f"Adding target field {field} for {ticker}...")
 
     # Create target field
     field_name = 'Target'
@@ -34,10 +34,13 @@ def by_ticker(df, field, type, lag, thresh):
     return df
 
 
-def target_by_ticker(df, field, type, lag, thresh):
-    df = df.groupby('Ticker').apply(by_ticker, field, type, lag, thresh)
-    df.reset_index(drop=True, inplace=True)
-    df = df.replace([np.inf, -np.inf], np.nan)
-    return df
+class Target:
+    def target(self, field='Flat_SPQA', type='class', lag=-1, thresh=None):
+        log.info("Adding target ...")
+        self.data_df = self.data_df.groupby('Ticker').apply(by_ticker, field, type, lag, thresh)
+        self.data_df.reset_index(drop=True, inplace=True)
+        self.data_df = self.data_df.replace([np.inf, -np.inf], np.nan)
+        self.target_df = self.data_df
+        return self
 
 

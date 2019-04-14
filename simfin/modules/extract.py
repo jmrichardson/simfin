@@ -1,9 +1,11 @@
 import pandas as pd
 from loguru import logger as log
 from modules.extractor import *
+import os
 
 
 def extract_bulk(csv_file):
+
     log.info("Loading bulk csv data set.  Be patient ...")
     dataSet = SimFinDataset(csv_file)
 
@@ -27,6 +29,21 @@ def extract_bulk(csv_file):
     data.drop_duplicates(subset=['Date', 'Ticker'], keep=False, inplace=True)
 
     # Remove rows with invalid ticker symbol
-    data = data[data['Ticker'].str.contains('^[A-Za-z]+$')]
+    return data[data['Ticker'].str.contains('^[A-Za-z]+$')]
 
-    return data
+
+class Extract:
+
+    def extract(self):
+
+        # Load previously saved DF if exists
+        if not self.force and os.path.exists(self.extract_df_file):
+            if os.path.exists(self.extract_df_file):
+                log.info("Loading saved extract data set ...")
+                self.extract_df = pd.read_pickle(self.extract_df_file)
+                self.data_df = self.extract_df
+                return self
+
+        self.data_df = extract_bulk(self.csv_file)
+        self.data_df.to_pickle(self.extract_df_file)
+

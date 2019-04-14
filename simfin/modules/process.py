@@ -33,23 +33,17 @@ def by_ticker(df):
 
     X = X.astype(np.float64)
 
-
     df = pd.concat([index, X, y], axis=1)
 
     return df
 
 
-def process_by_ticker(df):
-    df = df.groupby('Ticker').apply(by_ticker)
-    df.reset_index(drop=True, inplace=True)
-    df = df.fillna(0)
-
-    return [df, proc]
-
-if __name__ == "__main__":
-    # df = simfin().extract().df()
-    # df = df.query('Ticker == "A" | Ticker == "FLWS"')
-    d = simfin().flatten().query(['FLWS', 'TSLA']).target().data_df
-
+class Process:
+    def process(self):
+        self.data_df = self.data_df.groupby('Ticker').apply(by_ticker)
+        self.data_df.reset_index(drop=True, inplace=True)
+        self.data_df = self.data_df.fillna(0)
+        self.proc = proc
+        return self
 
 

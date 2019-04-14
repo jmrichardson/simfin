@@ -2,10 +2,12 @@ import talib
 import numpy as np
 from loguru import logger as log
 import fastai.tabular
+from config import *
 
 
 # Add momentum feature on features
-def mom(df, key_features, count):
+def mom(df, count):
+    global key_features
     for feature in key_features:
         if df[feature].isnull().all():
             continue
@@ -18,7 +20,10 @@ def mom(df, key_features, count):
 
 
 # Calculate trailing twelve months
-def TTM(df, key_features, roll, days):
+def TTM(df, roll, days):
+
+    global key_features
+
     def lastYearSum(series):
         # Must have x previous inputs
         if len(series) < roll:
@@ -43,35 +48,30 @@ def TTM(df, key_features, roll, days):
 
 
 # Process data by ticker
-def by_ticker(df, key_features):
+def by_ticker(df):
+    global key_features
     log.info("Processing " + str(df['Ticker'].iloc[0]) + "...")
 
     # Sort dataframe by date
     df = df.sort_values(by='Date')
 
     # Trailing twelve month
-    df = TTM(df, key_features, 4, 370)
+    df = TTM(df, 4, 370)
 
     # Momentum
-    df = mom(df, key_features, 6)
+    df = mom(df, 6)
     return df
 
 
-def features_by_ticker(df, key_features):
-    df = df.groupby('Ticker').apply(by_ticker, key_features)
+class Features:
+    def features(self):
+        log.info("Add features by ticker ...")
+        self.data_df = self.data_df.groupby('Ticker').apply(by_ticker)
 
-    # Add date information
-    fastai.tabular.add_datepart(df=df, field_name='Date', prefix='Feature_', drop=False)
-    df['Feature_Quarter'] = df['Date'].dt.quarter
+        # Add date information
+        fastai.tabular.add_datepart(df=self.data_df, field_name='Date', prefix='Feature_', drop=False)
+        self.data_df['Feature_Quarter'] = self.data_df['Date'].dt.quarter
+        self.data_df.reset_index(drop=True, inplace=True)
+        return self
 
-    # Reset index
-    df.reset_index(drop=True, inplace=True)
-    return df
-
-
-if __name__ == "__main__":
-
-    df = simfin().flatten().query(['FLWS', 'TSLA']).missing().features().data_df
-    # df = simfin().flatten().query(['FLWS', 'TSLA']).missing().data_df
-    # look = add_datepart(df=df, field_name='Date', prefix='Feature_', drop=False)
 

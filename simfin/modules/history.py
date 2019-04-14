@@ -26,11 +26,13 @@ def by_ticker(df):
     return df
 
 
-def history_by_ticker(df):
-    df = df.groupby('Ticker').apply(by_ticker)
-    df.reset_index(drop=True, inplace=True)
-    return df
+class History:
+    def history(self):
+        log.info("Getting history ...")
+        self.data_df = self.data_df.groupby('Ticker').apply(by_ticker)
+        self.data_df.reset_index(drop=True, inplace=True)
+        self.history_df = self.data_df
+        return self
 
 
-if __name__ == "__main__":
-    df = simfin().flatten().query(['FLWS', 'TSLA']).missing_rows().data_df
+

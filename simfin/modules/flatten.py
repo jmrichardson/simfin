@@ -1,13 +1,14 @@
 import talib
 import pandas as pd
 import numpy as np
+import os
 from loguru import logger as log
 
 
 def by_ticker(df):
 
     ticker = str(df['Ticker'].iloc[0])
-    log.info("Processing {} ...".format(ticker))
+    log.info("Flattening {} ...".format(ticker))
 
     # Sort dataframe by date
     df = df.sort_values(by='Date')
@@ -74,19 +75,33 @@ def by_ticker(df):
     return df.merge(tmp)
 
 
-def flatten_by_ticker(df):
+class Flatten:
 
-    # df = df.query('Ticker == "A" | Ticker == "FLWS"')
-    df = df.groupby('Ticker').apply(by_ticker)
-    df.reset_index(drop=True, inplace=True)
-    df = df.replace([np.inf, -np.inf], np.nan)
-    return df
+    # Flatten extracted bulk simfin dataset into quarterly.
+    def flatten(self):
 
-if __name__ == "__main__":
+        # Load previously saved DF if exists
+        if not self.force and os.path.exists(self.flatten_df_file):
+            log.info("Loading saved flattened data set ...")
+            self.flatten_df = pd.read_pickle(self.flatten_df_file)
+            self.data_df = self.flatten_df
+            return self
 
-    print("Starting ...")
-    # df = simfin().extract().df()
-    df = df.query('Ticker == "A" | Ticker == "FLWS"')
-    look = flatten_by_ticker(df)
+        # If empty bulk data, load previously saved or throw error
+        if self.data_df.empty:
+            if os.path.exists(self.extract_df_file):
+                log.info("Loading saved extract data set ...")
+                self.extract_df = pd.read_pickle(self.extract_df_file)
+                self.data_df = self.extract_df
+            else:
+                raise Exception("No extracted data set.  Run method extract()")
 
+        log.info("Flattening SimFin data set into quarterly ...")
+        self.data_df = self.data_df.groupby('Ticker').apply(by_ticker)
+        self.data_df.reset_index(drop=True, inplace=True)
+        self.data_df = self.data_df.replace([np.inf, -np.inf], np.nan)
+        self.flatten_df = self.data_df
+        self.data_df.to_pickle(self.flatten_df_file)
+
+        return self
 

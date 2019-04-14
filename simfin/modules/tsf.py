@@ -3,11 +3,14 @@ from tsfresh import extract_features
 from tsfresh.utilities.dataframe_functions import make_forecasting_frame
 from loguru import logger as log
 import os
+from config import *
 from multiprocessing import freeze_support
 
 
 # Process data by ticker
-def by_ticker(df, key_features):
+def by_ticker(df):
+
+    global key_features
 
     # Log ticker
     ticker = str(df['Ticker'].iloc[0])
@@ -63,11 +66,13 @@ def by_ticker(df, key_features):
     return df
 
 
-def tsf_by_ticker(df, key_features):
-    log.info("Add tsfresh calculations by ticker ...")
-    data = df.groupby('Ticker').apply(by_ticker, key_features)
-    data.reset_index(drop=True, inplace=True)
-    return data
+class TSF:
+    def tsf(self):
+        log.info("Add tsfresh fields by ticker ...")
+        data = self.data_df.groupby('Ticker').apply(by_ticker)
+        self.data_df = data.reset_index(drop=True, inplace=False)
+        self.tsf_df = self.data_df
+        return self
 
 
 '''

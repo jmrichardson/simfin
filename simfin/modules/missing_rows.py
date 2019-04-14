@@ -35,17 +35,16 @@ def by_ticker(df):
     return df
 
 
-def missing_rows_by_ticker(df):
-    df = df.assign(Missing_Row=0)
-    df = df.groupby('Ticker').apply(by_ticker)
-    df['Missing_Row'].fillna(0, inplace=True)
-    df = df.replace([np.inf, -np.inf], np.nan)
-    df.reset_index(drop=True, inplace=True)
-    return df
-
-
-if __name__ == "__main__":
-    d = missing_rows_by_ticker(df)
+class MissingRows:
+    def missing_rows(self):
+        log.info("Add missing rows ...")
+        self.data_df = self.data_df.assign(Missing_Row=0)
+        self.data_df = self.data_df.groupby('Ticker').apply(by_ticker)
+        self.data_df['Missing_Row'].fillna(0, inplace=True)
+        self.data_df = self.data_df.replace([np.inf, -np.inf], np.nan)
+        self.data_df.reset_index(drop=True, inplace=True)
+        self.missing_rows_df = self.data_df
+        return self
 
 
 
