@@ -5,7 +5,10 @@ min_history = 6
 flatten_by = "Revenues"
 force = False
 
+key_features = ['Revenues', 'COGS']
+
 # Simfin key features
+'''
 key_features = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'EBITDA', 'Net Profit',
             'Cash & Cash Equivalents', 'Receivables', 'Current Assets',  'Total Assets', 'Short term debt', 'Accounts Payable',
             'Current Liabilities', 'Long Term Debt', 'Total Liabilities', 'Share Capital', 'Total Equity',
@@ -14,3 +17,4 @@ key_features = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'EBITDA', 'Net Profit
             'EV / EBITDA', 'EV / Sales', 'Book to Market', 'Operating Income / EV', 'Enterprise Value',
             'Flat_Basic Earnings Per Share', 'Flat_Common Earnings Per Share', 'Flat_Diluted Earnings Per Share',
             'Flat_Basic PE', 'Flat_Common PE', 'Flat_Diluted PE']
+'''

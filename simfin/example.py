@@ -2,6 +2,8 @@ from importlib import reload
 import simfin
 out = reload(simfin)
 from simfin import *
+from config import *
+
 
 # Extract and flaten simfin data set
 if not os.path.isfile('tmp/extract.zip'):
@@ -12,16 +14,11 @@ else:
 # simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
 # df = simfin.data_df
 
-simfin = simfin.predict_rf_reg(lag=-1, max_depth=10, max_features="sqrt", min_samples_leaf=5, n_estimators=100)
-
-# simfin = simfin.query(['A']).csv()
-
-# Add target
-work = 'tmp/target_reg'
-if not os.path.isfile(work):
-    simfin = simfin.target_reg(field='Revenues', lag=-1).save(work)
-else:
-    simfin = simfin.load(work)
+# Add predicted key features
+# for feature in key_features:
+    # log.info(f"Feature {feature} ...")
+    # simfin = simfin.predict_rf(field=feature, lag=-1, type='reg', thresh=None, max_depth=10, max_features="sqrt", min_samples_leaf=5, n_estimators=100)
+    # simfin = simfin.predict_rf(field=feature, lag=-1, type='class', thresh=None, max_depth=10, max_features="sqrt", min_samples_leaf=5, n_estimators=100)
 
 
 # simfin.csv()

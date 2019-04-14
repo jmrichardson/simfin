@@ -96,11 +96,11 @@ class SimFin:
         self.tsf_df = self.data_df
         return self
 
-    def target_class(self, field='Flat_SPQA', lag=-2, thresh=None):
+    def target(self, field='Flat_SPQA', type='class', lag=-1, thresh=None):
 
-        log.info("Adding classification target ...")
-        self.data_df = target_class_by_ticker(self.data_df, field, lag, thresh)
-        self.target_class_df = self.data_df
+        log.info("Adding target ...")
+        self.data_df = target_by_ticker(self.data_df, field, type, lag, thresh)
+        self.target_df = self.data_df
         return self
 
     def target_reg(self, field='Revenues', lag=-1):
@@ -147,10 +147,10 @@ class SimFin:
             log.info(f"Loading cache from {path} ...")
             return pickle.load(open(path, "rb"))
 
-    def predict_rf_reg(self, lag=-1, max_depth=10, max_features="sqrt", min_samples_leaf=5, n_estimators=100):
-        log.info("Predicting key features ...")
-        self.data_df = predict_rf_reg_feature(self.data_df, lag, max_depth, max_features, min_samples_leaf, n_estimators)
-        self.predict_xgboost_df = self.data_df
+    def predict_rf(self, field='Revenues', lag=-1, type='reg', thresh=None, max_depth=10, max_features="sqrt", min_samples_leaf=5, n_estimators=100):
+        log.info(f"Predicting key features ...")
+        self.data_df = predict_rf_feature(self.data_df, field, lag, type, thresh, max_depth, max_features, min_samples_leaf, n_estimators)
+        self.predict_rf_df = self.data_df
         return self
 
 
