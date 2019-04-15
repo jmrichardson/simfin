@@ -13,6 +13,12 @@ else:
 
 simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
 
+df = simfin.data_df
+
+
+
+
+
 simfin = simfin.missing_rows()
 simfin = simfin.history()
 
@@ -22,7 +28,6 @@ simfin = simfin.tsf()
 simfin = simfin.target(field='Flat_SPQA', type='class', lag=-1)
 
 simfin = simfin.features()
-df = simfin.data_df
 
 # Add target
 work = 'tmp/final_target'

@@ -16,6 +16,7 @@ for module in glob(os.path.join('modules', '*.py')):
 class SimFin(flatten.Flatten,
              features.Features,
              process.Process,
+             predict_rf.PredictRF,
              target.Target,
              history.History,
              tsf.TSF,
@@ -56,11 +57,7 @@ class SimFin(flatten.Flatten,
             log.info(f"Loading cache from {path} ...")
             return pickle.load(open(path, "rb"))
 
-    def predict_rf(self, field='Revenues', lag=-1, type='reg', thresh=None, max_depth=10, max_features="sqrt", min_samples_leaf=5, n_estimators=100):
-        log.info(f"Predicting key features ...")
-        self.data_df = predict_rf_feature(self.data_df, field, lag, type, thresh, max_depth, max_features, min_samples_leaf, n_estimators)
-        self.predict_rf_df = self.data_df
-        return self
+
 
 
 if __name__ == "__main__":
