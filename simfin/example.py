@@ -4,7 +4,6 @@ out = reload(simfin)
 from simfin import *
 from config import *
 
-
 # Extract and flaten simfin data set
 if not os.path.isfile('tmp/extract.zip'):
     simfin = SimFin().extract().flatten()
@@ -12,22 +11,15 @@ else:
     simfin = SimFin().flatten()
 
 simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
-
-df = simfin.data_df
-
-
-
-
-
-simfin = simfin.missing_rows()
-simfin = simfin.history()
-
-simfin = simfin.tsf()
-
+simfin = simfin.query(['FLWS','A'])
 
 simfin = simfin.target(field='Flat_SPQA', type='class', lag=-1)
 
-simfin = simfin.features()
+df = simfin.data_df
+simfin = simfin.process()
+df2 = simfin.data_df
+df2.shape
+
 
 # Add target
 work = 'tmp/final_target'
