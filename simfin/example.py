@@ -11,14 +11,28 @@ else:
     simfin = SimFin().flatten()
 
 simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
-simfin = simfin.query(['FLWS','A'])
 
 simfin = simfin.target(field='Flat_SPQA', type='class', lag=-1)
 
-df = simfin.data_df
+
 simfin = simfin.process()
-df2 = simfin.data_df
-df2.shape
+
+simfin = simfin.split()
+
+df = simfin.data_df
+X_train = simfin.X_train
+y_train = simfin.y_train
+
+X_test = simfin.X_test
+y_test = simfin.y_test
+
+
+
+
+
+
+
+
 
 
 # Add target
@@ -31,7 +45,6 @@ else:
 
 simfin = simfin.process()
 
-df = simfin.data_df
 
 
 

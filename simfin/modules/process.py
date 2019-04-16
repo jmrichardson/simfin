@@ -46,6 +46,7 @@ class Process:
     def process(self):
         self.data_df = self.data_df.groupby('Ticker').apply(by_ticker)
         self.data_df.reset_index(drop=True, inplace=True)
+
         return self
 
 

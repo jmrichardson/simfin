@@ -12,7 +12,6 @@ class PredictRF:
         log.info(f"Predicting key features ...")
 
         X = self.data_df.drop(['Date', 'Ticker'], axis=1)
-        print(field)
         if type == 'reg':
             train = self.target(field=field, type=type, lag=lag, thresh=thresh).data_df
         else:

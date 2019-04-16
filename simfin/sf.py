@@ -1,7 +1,9 @@
 import pandas as pd
 from loguru import logger as log
 import pickle
-from importlib import reload, import_module, util
+from sklearn.model_selection import train_test_split
+import pandas as pd
+from importlib import reload, import_module
 
 # Import all modules (reload for testing purposes)
 import os
@@ -24,13 +26,11 @@ class SimFin(flatten.Flatten,
              extract.Extract):
 
     def __init__(self):
-
         self.force = force
         self.tmp_dir = 'tmp'
         self.data_dir = 'data'
         self.process_list = []
         self.models = []
-
         self.data_df = pd.DataFrame
         self.csv_file = os.path.join(self.data_dir, csv_file)
         self.extract_df_file = os.path.join(self.tmp_dir, 'extract.zip')
@@ -57,7 +57,12 @@ class SimFin(flatten.Flatten,
             log.info(f"Loading cache from {path} ...")
             return pickle.load(open(path, "rb"))
 
-
+    def split(self, test_size=.2):
+        df = self.data_df[pd.notnull(self.data_df['Target'])]
+        X = df.filter(regex=r'^(?!Target).*$')
+        y = df.filter(regex=r'^Target$')
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, stratify=y, test_size=test_size, random_state=1)
+        return self
 
 
 if __name__ == "__main__":
@@ -68,5 +73,4 @@ if __name__ == "__main__":
 
     # Remove log
     log.remove(lid)
-
 
