@@ -18,10 +18,11 @@ for module in glob(os.path.join('modules', '*.py')):
 class SimFin(flatten.Flatten,
              features.Features,
              process.Process,
-             predict_rf.PredictRF,
+             random_forest.RandomForest,
              target.Target,
              history.History,
              tsf.TSF,
+             model.Model,
              missing_rows.MissingRows,
              extract.Extract):
 
@@ -60,8 +61,10 @@ class SimFin(flatten.Flatten,
     def split(self, test_size=.2):
         df = self.data_df[pd.notnull(self.data_df['Target'])]
         X = df.filter(regex=r'^(?!Target).*$')
-        y = df.filter(regex=r'^Target$')
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, stratify=y, test_size=test_size, random_state=1)
+        y = df.filter(regex=r'^Target$').values.ravel()
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=test_size, random_state=1)
+        self.groups = self.X_train['Ticker']
+        self.X_train = self.X_train.drop(['Date', 'Ticker'], axis=1)
         return self
 
 

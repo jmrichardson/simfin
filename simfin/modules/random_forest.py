@@ -5,9 +5,9 @@ from sklearn.impute import SimpleImputer
 from loguru import logger as log
 
 
-class PredictRF:
+class RandomForest:
 
-    def predict_rf(self, field='Revenues', lag=-1, type='reg', thresh=None, max_depth=10, max_features="sqrt", min_samples_leaf=5, n_estimators=100):
+    def random_forest(self, field='Revenues', lag=-1, type='reg', thresh=None, max_depth=10, max_features="sqrt", min_samples_leaf=5, n_estimators=100):
 
         log.info(f"Predicting key features ...")
 
@@ -46,9 +46,11 @@ class PredictRF:
         log.info("Fitting model ...")
         rf.fit(X_train, y_train)
 
+        # Predict on original data
+        X = X.filter(regex=r'^(?!Target).*$')
         X = imputer.transform(X)
+        self.data_df['RF_' + type + '_' + field] = pd.Series(rf.predict(X))
 
-        self.data_df['Predict_rf_' + type + '_' + field] = pd.Series(rf.predict(X))
         self.predict_rf_df = self.data_df
 
         return self

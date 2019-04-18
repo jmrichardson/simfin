@@ -23,9 +23,11 @@ def by_ticker(df):
     X = X.filter(regex=r'^(?!Target).*$')
     y = df.filter(regex=r'^Target$')
 
+    # Drop NA columns
+    X = X.dropna(axis=1, how='all')
     col_names = X.columns
 
-    imputer = SimpleImputer(strategy="median")
+    imputer = SimpleImputer(strategy="median", verbose=3)
     imputer.fit(X)
     X = imputer.transform(X)
 
@@ -45,6 +47,9 @@ def by_ticker(df):
 class Process:
     def process(self):
         self.data_df = self.data_df.groupby('Ticker').apply(by_ticker)
+        self.data_df = self.data_df[pd.notnull(self.data_df['Share Price'])]
+        self.data_df = self.data_df.fillna(-999)
+        self.data_df['Target'] = self.data_df['Target'].replace(-999, np.nan)
         self.data_df.reset_index(drop=True, inplace=True)
 
         return self
