@@ -6,7 +6,7 @@ import numpy as np
 
 
 # Check for missing quarters, insert null row and column
-def by_ticker(df):
+def by_ticker(df, impute):
 
     ticker = str(df['Ticker'].iloc[0])
     log.info("Processing {} ...".format(ticker))
@@ -23,13 +23,17 @@ def by_ticker(df):
     X = X.filter(regex=r'^(?!Target).*$')
     y = df.filter(regex=r'^Target$')
 
-    # Drop NA columns
+    # Get original column names
     X = X.dropna(axis=1, how='all')
     col_names = X.columns
 
-    imputer = SimpleImputer(strategy="median", verbose=3)
-    imputer.fit(X)
-    X = imputer.transform(X)
+    if impute:
+        # Drop NA columns
+        # col_names = X.columns
+
+        imputer = SimpleImputer(strategy="median", verbose=3)
+        imputer.fit(X)
+        X = imputer.transform(X)
 
     scaler = StandardScaler()
     scaler.fit(X)
@@ -45,11 +49,11 @@ def by_ticker(df):
 
 
 class Process:
-    def process(self):
-        self.data_df = self.data_df.groupby('Ticker').apply(by_ticker)
-        self.data_df = self.data_df[pd.notnull(self.data_df['Share Price'])]
-        self.data_df = self.data_df.fillna(-999)
-        self.data_df['Target'] = self.data_df['Target'].replace(-999, np.nan)
+    def process(self, impute=False):
+        self.data_df = self.data_df.groupby('Ticker').apply(by_ticker, impute)
+        # self.data_df = self.data_df[pd.notnull(self.data_df['Share Price'])]
+        # self.data_df = self.data_df.fillna(-999)
+        # self.data_df['Target'] = self.data_df['Target'].replace(-999, np.nan)
         self.data_df.reset_index(drop=True, inplace=True)
 
         return self

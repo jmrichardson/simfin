@@ -15,7 +15,7 @@ else:
 
 simfin = simfin.target(field='Flat_SPQA', type='class', lag=-1)
 
-simfin = simfin.process()
+simfin = simfin.process(impute=False)
 simfin = simfin.split()
 
 df = simfin.data_df
