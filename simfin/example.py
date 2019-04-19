@@ -62,3 +62,4 @@ simfin = simfin.process()
 # df = simfin.data_df
 
 
+search.save_model('tmp/model')

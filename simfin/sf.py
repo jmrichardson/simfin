@@ -65,6 +65,7 @@ class SimFin(flatten.Flatten,
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=test_size, random_state=1)
         self.groups = self.X_train['Ticker']
         self.X_train = self.X_train.drop(['Date', 'Ticker'], axis=1)
+        self.X_test = self.X_test.drop(['Date', 'Ticker'], axis=1)
         return self
 
 
