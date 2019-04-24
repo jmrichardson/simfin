@@ -13,6 +13,8 @@ param_dist = {
     'min_child_weight': randint(1, 6),
     'reg_alpha': [1e-5, 1e-2, 0.1, 1, 100],
     'gamma': [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
+    "tree_method":'gpu_hist',
+    "predictor":'gpu_predictor',
 }
 
 

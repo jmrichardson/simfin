@@ -120,3 +120,5 @@ dmypy.json
 tmp/
 *.pck
 *.ftr
+*.tmp
+catboost_info/

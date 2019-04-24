@@ -1,31 +1,60 @@
 from hyperband import HyperbandSearchCV
 from sklearn.model_selection import GroupKFold
-from xgboost.sklearn import XGBClassifier
+from catboost import CatBoostClassifier
 from scipy.stats import randint, uniform
 from sklearn.metrics import confusion_matrix, balanced_accuracy_score, roc_auc_score, f1_score, precision_score, recall_score
+from loguru import logger as log
 
 scale = (len(y_train) - sum(y_train)) / len(y_train)
-estimator = XGBClassifier(scale_pos_weight=scale, verbosity=2, seed=1)
+
+estimator = CatBoostClassifier(
+    eval_metric="F1",
+    scale_pos_weight=scale,
+)
 param_dist = {
-    'max_depth': randint(5, 45),
-    'learning_rate': uniform(0.01, 0.5),
-    'subsample': uniform(0.3, 0.6),
-    'colsample_bytree': uniform(0.3, 0.6),
-    'min_child_weight': randint(1, 6),
-    'reg_alpha': [1e-5, 1e-2, 0.1, 1, 100],
-    'gamma': [0.0, 0.1, 0.2, 0.3, 0.4, 0.5],
+    # 'learning_rate': uniform(1e-7, 1),
+    'max_depth': randint(2, 15),
+    # 'scale_pos_weight': scale,
+    'colsample_bylevel': uniform(0.4, 0.5),
+    # 'subsample': uniform(0.4, 0.5),
+    # 'reg_lambda': randint(1, 99),
+    # 'gradient_iterations': randint(1, 10),
+    # 'bagging_temperature': uniform(0, 1),
+    # 'random_strength': randint(1, 19),
+    # 'loss_function': ['Logloss', 'CrossEntropy'],
+    # 'border_count': randint(1, 255),
 }
 
-
-cv = GroupKFold(n_splits=10)
-
+cv = GroupKFold(n_splits=5)
 search = HyperbandSearchCV(estimator, param_dist, cv=cv,
                            resource_param='iterations',
-                           scoring=('accuracy', 'roc_auc', 'balanced_accuracy', 'precision', 'recall', 'f1'),
-                           refit='balanced_accuracy',
+                           # min_iter=10,
+                           max_iter=1200,
+                           # scoring=('accuracy', 'roc_auc', 'balanced_accuracy', 'precision', 'recall', 'f1'),
+                           # scoring='roc_auc',
+                           # refit='roc_auc',
                            return_train_score=True)
 
+
+
+log.info("Starting")
 search.fit(X_train, y_train, groups=groups)
+log.info("Done")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 print(search.best_params_)
 print(mean(search.cv_results_['mean_test_balanced_accuracy']))
