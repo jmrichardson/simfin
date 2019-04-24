@@ -3,7 +3,11 @@ import simfin
 out = reload(simfin)
 from simfin import *
 from config import *
-import pandas as pd
+from loguru import logger as log
+
+# Change log format
+log.remove()
+out = log.add(sys.stdout, format="<b>{time:YYYY-mm-dd hh:mm:ss}</b> - <green>{message}</green>")
 
 # Extract and flaten simfin data set
 if not os.path.isfile('tmp/extract.zip'):
@@ -11,33 +15,41 @@ if not os.path.isfile('tmp/extract.zip'):
 else:
     simfin = SimFin().flatten()
 
-# simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
+simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
 # simfin = simfin.query(['AA','FLWS'])
 # simfin = simfin.query(['FLWS', 'WSCO'])
 # simfin = simfin.query(['WSCO'])
 
 simfin = simfin.target(field='Flat_SPQA', type='class', lag=-1)
 
-
+### Start here from now on
 simfin = simfin.process(impute=False)
 
 simfin = simfin.split()
+
+
+simfin.catboost_target()
+
+exit()
 
 df = simfin.data_df
 # df.to_pickle('tmp/df.pkl')
 
 X_train = simfin.X_train
 y_train = simfin.y_train
+X_train_split = simfin.X_train_split
+y_train_split = simfin.y_train_split
+X_val_split = simfin.X_val_split
+y_val_split = simfin.y_val_split
 groups = simfin.groups
-
-
-
-
-
-X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=.2, random_state=1)
-
 X_test = simfin.X_test
 y_test = simfin.y_test
+
+
+
+
+
+############################
 
 
 

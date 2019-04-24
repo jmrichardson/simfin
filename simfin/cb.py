@@ -1,13 +1,4 @@
-import catboost as cb
-import catboost.datasets as cbd
-import catboost.utils as cbu
-import numpy as np
-import pandas as pd
-import hyperopt
-import sys
-from catboost import CatBoostClassifier, Pool, cv
-from sklearn.metrics import accuracy_score
-
+from catboost import CatBoostClassifier
 
 # Groups need to be grouped together
 # X_train = X_train.sort_values(by=['Ticker', 'Date'], ascending=[True, True]).reset_index(drop=True)
@@ -16,27 +7,29 @@ from sklearn.metrics import accuracy_score
 # train_pool = Pool(X_train, y_train, group_id=groups)
 # train_pool = Pool(X_train, y_train, group_id=groups)
 
-params = {
-    "iterations": 100,
-    'learning_rate': 0.1,
-    'eval_metric': 'Accuracy',
-    "depth": 2,
-    "loss_function": "Logloss",
-    'use_best_model': True,
-}
+params={'bagging_temperature': 2.0, 'depth': 8.0, 'eval_metric': 'F1', 'l2_leaf_reg': 46.0,
+        'learning_rate': 0.012043652624016063, 'n_estimators': 492.0, 'random_strength': 79.0,
+        'task_type': 'GPU', 'thread_count': -1, 'verbose': 1}
 
+params={'eval_metric': 'F1', 'task_type': 'GPU', 'random_seed': 1}
+params={'eval_metric': 'F1', 'n_estimators': 1133.0, 'task_type': 'GPU'}
 
-model = CatBoostClassifier(
-    # custom_loss='Accuracy',
-    # custom_metric="F1",
-    eval_metric="F1",
-    # logging_level='Silent',
-    # eval_metric="AUC",
+model = CatBoostClassifier(**params)
+
+model.fit(
+    X_train, y_train,
+    eval_set=(X_val, y_val),
+    logging_level='Verbose',
 )
 
 model.fit(
     X_train, y_train,
-    # eval_set=(X_val, y_val),
+    eval_set=(X_test, y_test),
     logging_level='Verbose',
 )
 
+# Get train and validation score
+# train_score = model.best_score_['learn']['Precision']
+# validation_score = model.best_score_['validation_0']['Precision']
+# print(f'Train score: {train_score}')
+# print(f'Validation score: {validation_score}')

@@ -3,8 +3,10 @@ from loguru import logger as log
 import pickle
 from sklearn.model_selection import train_test_split
 import pandas as pd
+import sys
 from importlib import reload, import_module
 from sklearn.feature_selection import VarianceThreshold
+
 
 # Import all modules (reload for testing purposes)
 import os
@@ -21,6 +23,7 @@ class SimFin(flatten.Flatten,
              process.Process,
              random_forest.RandomForest,
              target.Target,
+             catboost_target.CatboostTarget,
              history.History,
              tsf.TSF,
              model.Model,
@@ -59,7 +62,7 @@ class SimFin(flatten.Flatten,
             log.info(f"Loading cache from {path} ...")
             return pickle.load(open(path, "rb"))
 
-    def split(self, test_size=.2):
+    def split(self, validation=True, test_size=.2):
         # Remove null target rows and sort by date
         df = self.data_df[pd.notnull(self.data_df['Target'])].sort_values(by='Date')
 
@@ -69,18 +72,22 @@ class SimFin(flatten.Flatten,
         # Get dependent feature
         y = df.filter(regex=r'^Target$').values.ravel()
 
-        # Split without shuffle
+        # Split without shuffle (Better to split with respect to date)
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
-            X, y,
-            test_size=test_size,
-            shuffle=False
-        )
+            X, y, test_size=test_size, shuffle=False, random_state=1)
+
+        if validation:
+            self.X_train_split, self.X_val_split, self.y_train_split, self.y_val_split = train_test_split(
+                self.X_train, self.y_train, test_size=test_size, shuffle=False , random_state=1)
 
         # Need groups together for catboost (may not ever use but just in case)
-        self.X_train = self.X_train.sort_values(by=['Ticker', 'Date'], ascending=[True, True]).reset_index(drop=True)
+        # self.X_train = self.X_train.sort_values(by=['Ticker', 'Date'], ascending=[True, True]).reset_index(drop=True)
         self.groups = self.X_train['Ticker']
+        self.groups_split = self.X_train_split['Ticker']
 
         self.X_train = self.X_train.drop(['Date', 'Ticker'], axis=1)
+        self.X_train_split = self.X_train_split.drop(['Date', 'Ticker'], axis=1)
+        self.X_val_split = self.X_val_split.drop(['Date', 'Ticker'], axis=1)
         self.X_test = self.X_test.drop(['Date', 'Ticker'], axis=1)
 
         # Get rid of zero variance columns
