@@ -3,6 +3,7 @@ from loguru import logger as log
 import pickle
 from sklearn.model_selection import train_test_split
 import pandas as pd
+from catboost import CatBoostClassifier
 import sys
 from importlib import reload, import_module
 from sklearn.feature_selection import VarianceThreshold
@@ -90,12 +91,18 @@ class SimFin(flatten.Flatten,
         self.X_val_split = self.X_val_split.drop(['Date', 'Ticker'], axis=1)
         self.X_test = self.X_test.drop(['Date', 'Ticker'], axis=1)
 
-        # Get rid of zero variance columns
-        # sel = VarianceThreshold(threshold=0.0)
-        # sel.fit(self.X_train)
-        # index = sel.get_support()
-        # self.X_train = self.X_train.iloc[:, index]
-        # self.X_test = self.X_test.iloc[:, index]
+        return self
+
+    def select_features(self, thresh=0):
+
+        self.split()
+        model = CatBoostClassifier(verbose=0)
+        log.info("Generating feature importance model ...")
+        model.fit(self.X_train_split, self.y_train_split, eval_set=(self.X_val_split, self.y_val_split))
+        self.importances = model.feature_importances_
+        columns = [True if x > thresh else False for x in self.importances]
+        log.info(f'Selecting {sum(columns)} features out of {len(self.X_train.columns)}')
+        self.X_train = self.X_train.loc[:, columns]
 
         return self
 

@@ -15,24 +15,40 @@ if not os.path.isfile('tmp/extract.zip'):
 else:
     simfin = SimFin().flatten()
 
-simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
+# simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
 # simfin = simfin.query(['AA','FLWS'])
 # simfin = simfin.query(['FLWS', 'WSCO'])
 # simfin = simfin.query(['WSCO'])
 
 simfin = simfin.target(field='Flat_SPQA', type='class', lag=-1)
 
-### Start here from now on
 simfin = simfin.process(impute=False)
+
+simfin = simfin.select_features()
+
+
+
+
+
+
+
 
 simfin = simfin.split()
 
 
 simfin.catboost_target()
 
+df = simfin.data_df
 exit()
 
-df = simfin.data_df
+
+
+
+
+
+
+
+
 # df.to_pickle('tmp/df.pkl')
 
 X_train = simfin.X_train

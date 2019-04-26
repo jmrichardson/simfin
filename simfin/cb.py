@@ -1,4 +1,5 @@
 from catboost import CatBoostClassifier
+from sklearn.feature_selection import SelectFromModel
 
 # Groups need to be grouped together
 # X_train = X_train.sort_values(by=['Ticker', 'Date'], ascending=[True, True]).reset_index(drop=True)
@@ -16,9 +17,11 @@ params={'eval_metric': 'F1', 'n_estimators': 1133.0, 'task_type': 'GPU'}
 
 model = CatBoostClassifier(**params)
 
+model = CatBoostClassifier()
+
 model.fit(
-    X_train, y_train,
-    eval_set=(X_val, y_val),
+    X_train_split, y_train_split,
+    eval_set=(X_val_split, y_val_split),
     logging_level='Verbose',
 )
 
@@ -27,6 +30,14 @@ model.fit(
     eval_set=(X_test, y_test),
     logging_level='Verbose',
 )
+
+
+imp_features = pd.Series(model.feature_importances_)
+imp_features = model.feature_importances_
+thresh = 0
+sel_cols = [True if x > thresh else False for x in imp_features]
+X_train.loc[:, sel_cols]
+
 
 # Get train and validation score
 # train_score = model.best_score_['learn']['Precision']

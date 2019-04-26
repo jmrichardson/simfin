@@ -9,6 +9,7 @@ import pandas as pd
 # Init variables
 # Number of hyper opt probes/iterations
 max_evals = 1
+n_jobs = 1
 
 iteration = 0
 best_cv_score = 0
@@ -24,7 +25,7 @@ space = {
     'eval_metric': 'Precision',
     'task_type': 'GPU',
     'verbose': 0,
-    'n_estimators': 3,
+    # 'n_estimators': 3,
     # 'n_estimators': hp.quniform('n_estimators', 10, 20, 1),
     # 'depth': hp.quniform('depth', 6, 10, 1),
     # 'learning_rate': hp.loguniform('learning_rate', np.log(0.001), np.log(.1)),
@@ -56,7 +57,7 @@ def validation_score(space):
     model = CatBoostClassifier(**space)
     cv = GroupKFold(n_splits=5)
     scores = cross_validate(model, X_train, y_train, cv=cv,
-                            groups=groups, scoring='precision', n_jobs=1, return_train_score=True)
+                            groups=groups, scoring='precision', n_jobs=n_jobs, return_train_score=True)
     train_cv_score = scores['train_score'].mean()
     test_score = scores['test_score'].mean()
     log.info(f'Train score: {train_cv_score}  Validation score: {test_score}')
@@ -105,3 +106,4 @@ class CatboostTarget:
         log.info(f'Mean train score: {train_cv_score}')
         log.info(f'Mean validation score: {best_cv_score}')
         log.info(f'Test score: {test_score}')
+
