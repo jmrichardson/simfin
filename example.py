@@ -20,37 +20,17 @@ else:
 # simfin = simfin.query(['FLWS', 'WSCO'])
 # simfin = simfin.query(['WSCO'])
 
+simfin = simfin.features()
+
 simfin = simfin.target(field='Flat_SPQA', type='class', lag=-1)
 
 simfin = simfin.process(impute=False)
 
-simfin = simfin.select_features()
-
-
-
-
-
-
-
-
 simfin = simfin.split()
-
 
 simfin.catboost_target()
 
 df = simfin.data_df
-exit()
-
-
-
-
-
-
-
-
-
-# df.to_pickle('tmp/df.pkl')
-
 X_train = simfin.X_train
 y_train = simfin.y_train
 X_train_split = simfin.X_train_split
@@ -65,8 +45,16 @@ y_test = simfin.y_test
 
 
 
+look = pd.Series(simfin.importances)
+
+# df.to_pickle('tmp/df.pkl')
+
+
+
+
 ############################
 
+# simfin = simfin.select_features(thresh=.05)
 
 
 

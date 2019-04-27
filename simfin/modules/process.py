@@ -9,7 +9,7 @@ import numpy as np
 def by_ticker(df, impute):
 
     ticker = str(df['Ticker'].iloc[0])
-    log.info("Processing {} ...".format(ticker))
+    # log.info("Processing {} ...".format(ticker))
 
     # Need to reset index to allow for concat below
     df = df.sort_values(by='Date').reset_index(drop=True)
@@ -24,7 +24,7 @@ def by_ticker(df, impute):
     y = df.filter(regex=r'^Target$')
 
     # Get original column names
-    X = X.dropna(axis=1, how='all')
+    X = X.dropna(axis=1, how='all').astype(float)
     col_names = X.columns
     X_missing = pd.DataFrame()
 
@@ -32,7 +32,7 @@ def by_ticker(df, impute):
 
         missing = MissingIndicator(features='all')
         missing.fit(X)
-        X_missing = pd.DataFrame(missing.transform(X)).astype(int)
+        X_missing = pd.DataFrame(missing.transform(X)).astype(float)
         X_missing.columns = "Missing_" + col_names
 
         imputer = SimpleImputer(strategy="median")
@@ -54,6 +54,8 @@ def by_ticker(df, impute):
 
 class Process:
     def process(self, impute=True):
+
+        log.info("Pre-processing features by ticker ...")
 
         # Impute and scale
         self.data_df = self.data_df.groupby('Ticker').apply(by_ticker, impute)

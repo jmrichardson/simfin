@@ -64,6 +64,9 @@ class SimFin(flatten.Flatten,
             return pickle.load(open(path, "rb"))
 
     def split(self, validation=True, test_size=.2):
+
+        log.info("Splitting data set ...")
+
         # Remove null target rows and sort by date
         df = self.data_df[pd.notnull(self.data_df['Target'])].sort_values(by='Date')
 
@@ -87,10 +90,13 @@ class SimFin(flatten.Flatten,
         self.groups_split = self.X_train_split['Ticker']
 
         self.X_train = self.X_train.drop(['Date', 'Ticker'], axis=1)
+        self.X_train = self.X_train.astype(float)
         self.X_train_split = self.X_train_split.drop(['Date', 'Ticker'], axis=1)
+        self.X_train_split = self.X_train_split.astype(float)
         self.X_val_split = self.X_val_split.drop(['Date', 'Ticker'], axis=1)
+        self.y_train_split = self.y_train_split.astype(float)
         self.X_test = self.X_test.drop(['Date', 'Ticker'], axis=1)
-
+        self.X_test = self.X_test.astype(float)
         return self
 
     def select_features(self, thresh=0):

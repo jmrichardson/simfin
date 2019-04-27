@@ -13,11 +13,17 @@ params={'bagging_temperature': 2.0, 'depth': 8.0, 'eval_metric': 'F1', 'l2_leaf_
         'task_type': 'GPU', 'thread_count': -1, 'verbose': 1}
 
 params={'eval_metric': 'F1', 'task_type': 'GPU', 'random_seed': 1}
-params={'eval_metric': 'F1', 'n_estimators': 1133.0, 'task_type': 'GPU'}
+params={'eval_metric': 'F1', 'n_estimators': 100000, 'task_type': 'GPU'}
+
+params = {
+    'n_estimators': 1500,
+    'learning_rate': .03,
+    'task_type': 'GPU',
+    'od_type': 'Iter',
+    'od_wait': 50,
+}
 
 model = CatBoostClassifier(**params)
-
-model = CatBoostClassifier()
 
 model.fit(
     X_train_split, y_train_split,

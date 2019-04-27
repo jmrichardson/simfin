@@ -50,7 +50,7 @@ def TTM(df, roll, days):
 # Process data by ticker
 def by_ticker(df):
     global key_features
-    log.info("Processing " + str(df['Ticker'].iloc[0]) + "...")
+    # log.info("Adding features for " + str(df['Ticker'].iloc[0]) + "...")
 
     # Sort dataframe by date
     df = df.sort_values(by='Date')
@@ -65,7 +65,7 @@ def by_ticker(df):
 
 class Features:
     def features(self):
-        log.info("Add features by ticker ...")
+        log.info("Adding features by ticker ...")
         self.data_df = self.data_df.groupby('Ticker').apply(by_ticker)
 
         # Add date information
