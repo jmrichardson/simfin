@@ -23,7 +23,7 @@ params = {
     'od_wait': 50,
 }
 
-model = CatBoostClassifier(**params)
+model = CatBoostClassifier(**params, random_state=123)
 
 model.fit(
     X_train_split, y_train_split,

@@ -58,6 +58,11 @@ class SimFin(flatten.Flatten,
         pickle.dump(self, open(path, "wb"))
         return self
 
+    def sample(self, frac=0.3):
+        log.info(f"Getting {frac} random sample ...")
+        self.data_df = self.data_df.sample(frac=frac)
+        return self
+
     def load(self, path=os.path.join('tmp', 'simfin')):
         if os.path.exists(path):
             log.info(f"Loading cache from {path} ...")

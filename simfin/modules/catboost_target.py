@@ -7,25 +7,16 @@ import numpy as np
 import pandas as pd
 from functools import partial
 
-
 # Init variables
 # Number of hyper opt probes/iterations
-max_evals = 10
-init_learning_rate = .025
-
+# max_evals = 100
+# init_learning_rate = .025
 
 iteration = 0
 best_score = 0
 best_iteration = 0
 train_score = 0
 scale = 0
-
-# X_train = pd.DataFrame()
-# X_test = pd.DataFrame()
-# y_train = pd.DataFrame()
-# y_test = pd.DataFrame()
-# groups = pd.Series()
-
 
 # # Get cross validation score
 # def validation_score(space):
@@ -40,33 +31,33 @@ scale = 0
 #     return test_score
 
 
-def objective(simfin, space):
+def objective(simfin, eval_metric, space):
     global iteration, best_iteration, best_score, train_score
     iteration += 1
     log.info(f'Iteration: {iteration} ...')
-    model = CatBoostClassifier(**space)
+    model = CatBoostClassifier(**space, random_state=123)
     model.fit(
         simfin.X_train_split, simfin.y_train_split,
         eval_set=(simfin.X_val_split, simfin.y_val_split)
     )
-    score = model.best_score_['validation_0']['Precision']
+    score = model.best_score_['validation_0'][eval_metric]
     if score > best_score:
         best_score = score
         best_iteration = model.best_iteration_
-        train_score = model.best_score_['learn']['Precision']
+        train_score = model.best_score_['learn'][eval_metric]
         log.info(f'Best score: {best_score} Params: {space}')
     return{'loss': -score, 'status': STATUS_OK}
 
 
 class CatboostTarget:
 
-    def catboost_target(self):
+    def catboost_target(self, init_learning_rate=.025, max_evals=100, eval_metric="Precision", od_wait=150, verbose=0):
 
         global best_iteration, best_score, iteration
 
         scale = (len(self.y_train) - sum(self.y_train)) / len(self.y_train)
 
-        log.info("Modelling target with tuned catboost ...")
+        log.info("Modelling target with tuned catboost parameters...")
 
         # Parameter space
         space = {
@@ -74,47 +65,64 @@ class CatboostTarget:
             'learning_rate': init_learning_rate,
             'task_type': 'GPU',
             'scale_pos_weight': scale,
-            'eval_metric': 'Precision',
+            'eval_metric': eval_metric,
             'od_type': 'Iter',
-            'od_wait': 50,
-            'verbose': 0,
-            'depth': hp.quniform('depth', 6, 10, 1),
-            'l2_leaf_reg': hp.quniform('l2_leaf_reg', 2, 30, 1),
-            'random_strength': hp.loguniform('random_strength', np.log(1), np.log(20)),
+            'od_wait': od_wait,
+            'verbose': verbose,
+        }
+
+        # Get best score using default parameters
+        model = CatBoostClassifier(**space, random_state=123)
+        model.fit(
+            self.X_train_split, self.y_train_split,
+            eval_set=(self.X_val_split, self.y_val_split)
+        )
+        default_score = model.best_score_['validation_0'][eval_metric]
+        log.info(f"Not tuned CV score: {default_score}")
+
+        space_tune = {**space,
+                      **{
+                          'depth': hp.quniform('depth', 6, 10, 1),
+                          'l2_leaf_reg': hp.quniform('l2_leaf_reg', 2, 30, 1),
+                          'random_strength': hp.loguniform('random_strength', np.log(1), np.log(20)),
+                      }
         }
 
         trials = Trials()
         # Tune parameters other than learning rate and estimators
         log.info("Start initial tuning ...")
-        best = fmin(fn=partial(objective, self), space=space, algo=tpe.suggest, max_evals=30, trials=trials, verbose=0,
+        best = fmin(fn=partial(objective, self, eval_metric), space=space_tune, algo=tpe.suggest, max_evals=max_evals, trials=trials, verbose=0,
                     show_progressbar=False)
-        best_score = 0
-        iteration = 0
 
+        if default_score > best_score:
+            log.info("Using default parameters ...")
+            space_tune = space
 
         # Decrease learning rate to improve quality while keeping high estimators
-        space = {**space, **best,
+        space_tune = {**space_tune, **best,
                  **{
                      'learning_rate': hp.loguniform('learning_rate', np.log(0.0001), np.log(init_learning_rate)),
                  }
         }
 
+        best_score = 0
+        iteration = 0
         trials = Trials()
         log.info("Start final tuning ...")
-        best = fmin(fn=partial(objective, self), space=space, algo=tpe.suggest, max_evals=30, trials=trials, verbose=0,
+        best = fmin(fn=partial(objective, self, eval_metric), space=space_tune, algo=tpe.suggest, max_evals=max_evals, trials=trials, verbose=0,
                     show_progressbar=False)
 
 
-        params = {**space, **best, **{
+        params = {**space_tune, **best, **{
                      'n_estimators': best_iteration,
                  }
         }
-        model = CatBoostClassifier(**params)
 
-        # Refit model with hyperopt parameters
+        model = CatBoostClassifier(**params)
+        # Refit model with tuned parameters
         log.info(f"Final parameters: {params}")
         log.info("Refitting model with tuned hyper parameters ...")
-        model.fit(self.X_train, self.y_train, verbose=0)
+        model.fit(self.X_train, self.y_train, verbose=verbose)
 
         y_pred = model.predict(self.X_test)
         test_score = precision_score(self.y_test, y_pred)
@@ -122,5 +130,6 @@ class CatboostTarget:
         log.info(f'Mean train score: {train_score}')
         log.info(f'Mean validation score: {best_score}')
         log.info(f'Test score: {test_score}')
+
 
 

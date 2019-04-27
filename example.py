@@ -20,6 +20,8 @@ else:
 # simfin = simfin.query(['FLWS', 'WSCO'])
 # simfin = simfin.query(['WSCO'])
 
+simfin = simfin.sample(frac=.2)
+
 simfin = simfin.features()
 
 simfin = simfin.target(field='Flat_SPQA', type='class', lag=-1)
@@ -28,7 +30,13 @@ simfin = simfin.process(impute=False)
 
 simfin = simfin.split()
 
-simfin.catboost_target()
+# simfin.catboost_target(init_learning_rate=.025, max_evals=100, eval_metric="Precision", od_wait=150, verbose=0)
+# simfin.catboost_target(init_learning_rate=.05, max_evals=2, eval_metric="Precision", od_wait=10, verbose=1)
+simfin.catboost_target(init_learning_rate=.025, max_evals=20, eval_metric="Precision", od_wait=50, verbose=0)
+
+
+
+
 
 df = simfin.data_df
 X_train = simfin.X_train
