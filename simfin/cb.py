@@ -23,12 +23,14 @@ params = {
     'od_wait': 50,
 }
 
+params = {'depth': 9.0, 'eval_metric': 'Precision', 'l2_leaf_reg': 22.0, 'learning_rate': 0.024982794681465168, 'n_estimators': 100000, 'od_type': 'Iter', 'od_wait': 200, 'random_strength': 1.1540808295012672, 'scale_pos_weight': 0.38504297699315454, 'task_type': 'GPU', 'verbose': 1}
+
 model = CatBoostClassifier(**params, random_state=123)
 
 model.fit(
     X_train_split, y_train_split,
     eval_set=(X_val_split, y_val_split),
-    logging_level='Verbose',
+    # logging_level='Verbose',
 )
 
 model.fit(

@@ -7,27 +7,10 @@ import numpy as np
 import pandas as pd
 from functools import partial
 
-# Init variables
-# Number of hyper opt probes/iterations
-# max_evals = 100
-# init_learning_rate = .025
-
 iteration = 0
 best_score = 0
 best_iteration = 0
 train_score = 0
-
-# # Get cross validation score
-# def validation_score(space):
-#     global train_cv_score
-#     model = CatBoostClassifier(**space)
-#     cv = GroupKFold(n_splits=5)
-#     scores = cross_validate(model, X_train, y_train, cv=cv,
-#                             groups=groups, scoring='precision', n_jobs=n_jobs, return_train_score=True)
-#     train_cv_score = scores['train_score'].mean()
-#     test_score = scores['test_score'].mean()
-#     log.info(f'Train score: {train_cv_score}  Validation score: {test_score}')
-#     return test_score
 
 
 def objective(simfin, eval_metric, space):
@@ -82,7 +65,9 @@ class CatboostTarget:
             eval_set=(self.X_val_split, self.y_val_split)
         )
         base_score = model.best_score_['validation_0'][eval_metric]
+        base_train_score = model.best_score_['learn']['Precision']
         base_iteration = model.best_iteration_
+        log.info(f"Base iteration: {base_iteration}")
         log.info(f"Base validation score: {base_score}")
 
         space_tune = {**space,
@@ -104,7 +89,9 @@ class CatboostTarget:
             log.info("Using tuned parameters ...")
             space = {**space, **best}
             base_score = best_score
+            base_train_score = train_score
             base_iteration = best_iteration
+            log.info(f"Base2 iteration: {base_iteration}")
 
         space_learn = {**space,
                          **{
@@ -122,14 +109,25 @@ class CatboostTarget:
         if best_score > base_score:
             log.info("Using tuned parameters ...")
             space = {**space, **best}
+            base_score = best_score
             base_iteration = best_iteration
+            log.info(f"Base3 iteration: {base_iteration}")
+            base_train_score = train_score
 
         params = {**space, **{
                                'n_estimators': base_iteration,
                              }
                   }
 
-        model = CatBoostClassifier(**params)
+        log.info("KFold cross validation ...")
+        model = CatBoostClassifier(**params, random_state=123)
+        cv = GroupKFold(n_splits=5)
+        scores = cross_validate(model, self.X_train, self.y_train, cv=cv,
+                                groups=self.groups, scoring='precision', return_train_score=True)
+        train_cv_score = scores['train_score'].mean()
+        test_cv_score = scores['test_score'].mean()
+
+        model = CatBoostClassifier(**params, random_state=123)
         # Refit model with tuned parameters
         log.info(f"Final parameters: {params}")
         log.info("Refitting model with tuned hyper parameters ...")
@@ -138,8 +136,10 @@ class CatboostTarget:
         y_pred = model.predict(self.X_test)
         test_score = precision_score(self.y_test, y_pred)
 
-        log.info(f'Training score: {train_score}')
-        log.info(f'Validation score: {best_score}')
+        log.info(f'Training score: {base_train_score}')
+        log.info(f'Training KFold score: {train_cv_score}')
+        log.info(f'Validation score: {base_score}')
+        log.info(f'Validation KFold score: {test_cv_score}')
         log.info(f'Test score: {test_score}')
 
 
