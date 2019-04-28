@@ -20,7 +20,7 @@ else:
 # simfin = simfin.query(['FLWS', 'WSCO'])
 # simfin = simfin.query(['WSCO'])
 
-simfin = simfin.sample(frac=.2)
+simfin = simfin.sample(frac=.1)
 
 simfin = simfin.features()
 
@@ -32,7 +32,7 @@ simfin = simfin.split()
 
 # simfin.catboost_target(init_learning_rate=.025, max_evals=100, eval_metric="Precision", od_wait=150, verbose=0)
 # simfin.catboost_target(init_learning_rate=.05, max_evals=2, eval_metric="Precision", od_wait=10, verbose=1)
-simfin.catboost_target(init_learning_rate=.025, max_evals=20, eval_metric="Precision", od_wait=50, verbose=0)
+simfin.catboost_target(init_learning_rate=.025, max_evals=5, eval_metric="Precision", od_wait=20, verbose=0)
 
 
 

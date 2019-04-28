@@ -77,8 +77,9 @@ class CatboostTarget:
             self.X_train_split, self.y_train_split,
             eval_set=(self.X_val_split, self.y_val_split)
         )
-        default_score = model.best_score_['validation_0'][eval_metric]
-        log.info(f"Not tuned CV score: {default_score}")
+        base_score = model.best_score_['validation_0'][eval_metric]
+        base_iteration = model.best_iteration_
+        log.info(f"Base validation score: {base_score}")
 
         space_tune = {**space,
                       **{
@@ -94,29 +95,34 @@ class CatboostTarget:
         best = fmin(fn=partial(objective, self, eval_metric), space=space_tune, algo=tpe.suggest, max_evals=max_evals, trials=trials, verbose=0,
                     show_progressbar=False)
 
-        if default_score > best_score:
+        if best_score > base_score:
             log.info("Using default parameters ...")
-            space_tune = space
+            space = {**space, **best}
+            base_score = best_score
+            base_iteration = best_iteration
 
-        # Decrease learning rate to improve quality while keeping high estimators
-        space_tune = {**space_tune, **best,
-                 **{
-                     'learning_rate': hp.loguniform('learning_rate', np.log(0.0001), np.log(init_learning_rate)),
-                 }
-        }
+        space_learn = {**space,
+                         **{
+                            'learning_rate': hp.loguniform('learning_rate', np.log(0.0001), np.log(init_learning_rate)),
+                           }
+                       }
 
         best_score = 0
         iteration = 0
         trials = Trials()
         log.info("Start final tuning ...")
-        best = fmin(fn=partial(objective, self, eval_metric), space=space_tune, algo=tpe.suggest, max_evals=max_evals, trials=trials, verbose=0,
+        best = fmin(fn=partial(objective, self, eval_metric), space=space_learn, algo=tpe.suggest, max_evals=max_evals, trials=trials, verbose=0,
                     show_progressbar=False)
 
+        if best_score > base_score:
+            log.info("Using tuned parameters ...")
+            space = {**space, **best}
+            base_iteration = best_iteration
 
-        params = {**space_tune, **best, **{
-                     'n_estimators': best_iteration,
-                 }
-        }
+        params = {**space, **{
+                               'n_estimators': base_iteration,
+                             }
+                  }
 
         model = CatBoostClassifier(**params)
         # Refit model with tuned parameters
