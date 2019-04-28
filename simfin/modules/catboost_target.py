@@ -16,7 +16,6 @@ iteration = 0
 best_score = 0
 best_iteration = 0
 train_score = 0
-scale = 0
 
 # # Get cross validation score
 # def validation_score(space):
@@ -33,6 +32,7 @@ scale = 0
 
 def objective(simfin, eval_metric, space):
     global iteration, best_iteration, best_score, train_score
+
     iteration += 1
     log.info(f'Iteration: {iteration} ...')
     model = CatBoostClassifier(**space, random_state=123)
@@ -54,6 +54,10 @@ class CatboostTarget:
     def catboost_target(self, init_learning_rate=.025, max_evals=100, eval_metric="Precision", od_wait=150, verbose=0):
 
         global best_iteration, best_score, iteration
+
+        iteration = 0
+        best_score = 0
+        best_iteration = 0
 
         scale = (len(self.y_train) - sum(self.y_train)) / len(self.y_train)
 
@@ -95,8 +99,9 @@ class CatboostTarget:
         best = fmin(fn=partial(objective, self, eval_metric), space=space_tune, algo=tpe.suggest, max_evals=max_evals, trials=trials, verbose=0,
                     show_progressbar=False)
 
+        log.info(f"best score: {best_score}")
         if best_score > base_score:
-            log.info("Using default parameters ...")
+            log.info("Using tuned parameters ...")
             space = {**space, **best}
             base_score = best_score
             base_iteration = best_iteration
@@ -133,8 +138,8 @@ class CatboostTarget:
         y_pred = model.predict(self.X_test)
         test_score = precision_score(self.y_test, y_pred)
 
-        log.info(f'Mean train score: {train_score}')
-        log.info(f'Mean validation score: {best_score}')
+        log.info(f'Training score: {train_score}')
+        log.info(f'Validation score: {best_score}')
         log.info(f'Test score: {test_score}')
 
 
