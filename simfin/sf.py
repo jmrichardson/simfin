@@ -72,14 +72,13 @@ class SimFin(flatten.Flatten,
 
         log.info("Splitting data set ...")
 
-        # Remove null target rows and sort by date
-        df = self.data_df[pd.notnull(self.data_df['Target'])].sort_values(by='Date')
+        self.data_df = self.data_df.sort_values(by='Date')
 
         # Get all independent features
-        self.X = df.filter(regex=r'^(?!Target).*$')
+        self.X = self.data_df.filter(regex=r'^(?!Target).*$')
 
         # Get dependent feature
-        self.y = df.filter(regex=r'^Target$').values.ravel()
+        self.y = self.data_df.filter(regex=r'^Target$').values.ravel()
 
         # Split without shuffle (Better to split with respect to date)
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
@@ -94,7 +93,9 @@ class SimFin(flatten.Flatten,
         self.groups = self.X_train['Ticker']
         self.groups_split = self.X_train_split['Ticker']
 
+        self.X = self.X.drop(['Date', 'Ticker'], axis=1)
         self.X_train = self.X_train.drop(['Date', 'Ticker'], axis=1)
+        self.X = self.X.astype(float)
         self.X_train = self.X_train.astype(float)
         self.X_train_split = self.X_train_split.drop(['Date', 'Ticker'], axis=1)
         self.X_train_split = self.X_train_split.astype(float)

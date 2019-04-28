@@ -67,6 +67,8 @@ class CatboostTarget:
         base_score = model.best_score_['validation_0'][eval_metric]
         base_train_score = model.best_score_['learn']['Precision']
         base_iteration = model.best_iteration_
+        if base_iteration == 0:
+            base_iteration = 1
         log.info(f"Base iteration: {base_iteration}")
         log.info(f"Base validation score: {base_score}")
 

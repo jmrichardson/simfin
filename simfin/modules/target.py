@@ -40,7 +40,10 @@ class Target:
         self.data_df = self.data_df.groupby('Ticker').apply(by_ticker, field, type, lag, thresh)
         self.data_df.reset_index(drop=True, inplace=True)
         self.data_df = self.data_df.replace([np.inf, -np.inf], np.nan)
-        self.target_df = self.data_df
+
+        # Remove null target rows and sort by date
+        self.data_df = self.data_df[pd.notnull(self.data_df['Target'])].sort_values(by='Date')
+
         return self
 
 
