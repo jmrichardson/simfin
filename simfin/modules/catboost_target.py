@@ -139,8 +139,6 @@ class CatboostTarget:
         y_pred = model.predict(self.X_test)
         test_score = precision_score(self.y_test, y_pred)
 
-        self.catboost_target_y_pred = model.predict(self.X)
-
         log.info(f'Training score: {base_train_score}')
         log.info(f'Validation score: {base_score}')
         log.info(f'Training KFold scores: {train_cv_scores}')
@@ -149,5 +147,8 @@ class CatboostTarget:
         log.info(f'Validation KFold score: {test_cv_score}')
         log.info(f'Test score: {test_score}')
 
+        self.data_df['Predict_Catboost_Target'] = model.predict(self.X)
+
+        return self
 
 

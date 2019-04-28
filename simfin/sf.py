@@ -83,7 +83,7 @@ class SimFin(flatten.Flatten,
 
         # Split without shuffle (Better to split with respect to date)
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
-            X, y, test_size=test_size, shuffle=False, random_state=1)
+            self.X, self.y, test_size=test_size, shuffle=False, random_state=1)
 
         if validation:
             self.X_train_split, self.X_val_split, self.y_train_split, self.y_val_split = train_test_split(
