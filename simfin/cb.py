@@ -25,6 +25,8 @@ params = {
 
 params = {'depth': 9.0, 'eval_metric': 'Precision', 'l2_leaf_reg': 22.0, 'learning_rate': 0.024982794681465168, 'n_estimators': 100000, 'od_type': 'Iter', 'od_wait': 200, 'random_strength': 1.1540808295012672, 'scale_pos_weight': 0.38504297699315454, 'task_type': 'GPU', 'verbose': 1}
 
+
+params = {'n_estimators': 213, 'learning_rate': 0.024873859079660984, 'task_type': 'GPU', 'scale_pos_weight': 0.38504297699315454, 'eval_metric': 'Precision', 'od_type': 'Iter', 'od_wait': 100, 'verbose': 1, 'depth': 9.0, 'l2_leaf_reg': 15.0, 'random_strength': 1.1995206569066472}
 model = CatBoostClassifier(**params, random_state=123)
 
 model.fit(

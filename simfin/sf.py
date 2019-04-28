@@ -76,10 +76,10 @@ class SimFin(flatten.Flatten,
         df = self.data_df[pd.notnull(self.data_df['Target'])].sort_values(by='Date')
 
         # Get all independent features
-        X = df.filter(regex=r'^(?!Target).*$')
+        self.X = df.filter(regex=r'^(?!Target).*$')
 
         # Get dependent feature
-        y = df.filter(regex=r'^Target$').values.ravel()
+        self.y = df.filter(regex=r'^Target$').values.ravel()
 
         # Split without shuffle (Better to split with respect to date)
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(

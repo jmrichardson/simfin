@@ -119,26 +119,33 @@ class CatboostTarget:
                              }
                   }
 
+        log.info(f"Final parameters: {params}")
+        self.catboost_target_params = params
+
         log.info("KFold cross validation ...")
         model = CatBoostClassifier(**params, random_state=123)
         cv = GroupKFold(n_splits=5)
         scores = cross_validate(model, self.X_train, self.y_train, cv=cv,
                                 groups=self.groups, scoring='precision', return_train_score=True)
         train_cv_score = scores['train_score'].mean()
+        train_cv_scores = scores['train_score']
         test_cv_score = scores['test_score'].mean()
+        test_cv_scores = scores['test_score']
 
-        model = CatBoostClassifier(**params, random_state=123)
-        # Refit model with tuned parameters
-        log.info(f"Final parameters: {params}")
         log.info("Refitting model with tuned hyper parameters ...")
+        model = CatBoostClassifier(**params, random_state=123)
         model.fit(self.X_train, self.y_train, verbose=verbose)
 
         y_pred = model.predict(self.X_test)
         test_score = precision_score(self.y_test, y_pred)
 
+        self.catboost_target_y_pred = model.predict(self.X)
+
         log.info(f'Training score: {base_train_score}')
-        log.info(f'Training KFold score: {train_cv_score}')
         log.info(f'Validation score: {base_score}')
+        log.info(f'Training KFold scores: {train_cv_scores}')
+        log.info(f'Validation KFold scores: {test_cv_scores}')
+        log.info(f'Training KFold score: {train_cv_score}')
         log.info(f'Validation KFold score: {test_cv_score}')
         log.info(f'Test score: {test_score}')
 
