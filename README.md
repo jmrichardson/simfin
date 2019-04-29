@@ -6,8 +6,8 @@ The nice folks at [SimFin](https://simfin.com/) provide freely available fundame
 
 * Extract and flatten [SimFin bulk](https://simfin.com/data/access/api) data
 
-    * Bulk download csv file requires [extraction](https://github.com/SimFin/bd-extractor) into a SimFinDataset. This dataset is enumerated into a sparse (daily combined with quarterly data) pandas dataframe using the extract() method.  
-    * The extracted dataframe can then be flattened into quarterly observations while preserving daily closing price history. The flatten() method calculates close monthly and quarterly averages and creates new features for 1, 2, 3, 6, 9 and 12 previous months and 1, 2, 3, 4, 5, 6, 8 and 12 quarters. 
+    * Bulk download csv file requires [extraction](https://github.com/SimFin/bd-extractor) into a SimFinDataset. This dataset is enumerated into a sparse pandas dataframe (daily combined with quarterly data) using the extract() method.  
+    * The extracted dataframe can then be flattened into quarterly observations while preserving daily closing price history. The flatten() method calculates close monthly and quarterly averages and creates new features for 1, 2, 3, 6, 9 and 12 previous months and 1, 2, 3, 4, 5, 6, 8 and 12 quarters respectively. 
     * In addition to SimFin's ratios, a handful of other feature ratios are calculated.
 
 ```buildoutcfg
@@ -16,14 +16,22 @@ simfin = SimFin().extract().flatten()
 
 * Add informative features such as date information and technical indicators with respect to each ticker.  
 
-    * For each ticker, calculate technical indicators such trailing twelve months (TTM) and momentum (MOM).  Todo: add more indicators
+    * For each ticker, calculate technical indicators such as trailing twelve months (TTM) and momentum (MOM).  Todo: add more indicators
     * Date features added using [fastai datepart](https://docs.fast.ai/tabular.transform.html)
 
 ```buildoutcfg
 simfin = simfin.features()
 ```
 
+* Add predicted key features. The smart folks at [Euclidean Technologies](https://www.euclidean.com/) published a [paper](https://arxiv.org/pdf/1711.04837.pdf) which demonstrates value in predicting future fundamentals (features). These predictions can then be used in future forecasts.
 
+    *  Regression and Classification predictions are automatically made on all key features (defined in config.py).
+
+```buildoutcfg
+simfin = simfin.predict_features()
+```
+
+:w
 
 
 * Add technical indicators and time series characteristics

@@ -29,7 +29,6 @@ def by_ticker(df, impute):
     X_missing = pd.DataFrame()
 
     if impute:
-
         missing = MissingIndicator(features='all')
         missing.fit(X)
         X_missing = pd.DataFrame(missing.transform(X)).astype(float)
@@ -53,9 +52,9 @@ def by_ticker(df, impute):
 
 
 class Process:
-    def process(self, impute=True):
+    def process(self, impute=False):
 
-        log.info("Pre-processing features by ticker ...")
+        log.info("Pre-process features by ticker ...")
 
         # Impute and scale
         self.data_df = self.data_df.groupby('Ticker').apply(by_ticker, impute)
@@ -63,7 +62,8 @@ class Process:
         # Features per ticker which are all NAN, we can't impute, so give a value out of range
         if impute:
             self.data_df = self.data_df.fillna(-9999)
-            self.data_df['Target'] = self.data_df['Target'].replace(-9999, np.nan)
+            if 'Target' in self.data_df.columns:
+                self.data_df['Target'] = self.data_df['Target'].replace(-9999, np.nan)
 
         self.data_df.reset_index(drop=True, inplace=True)
         return self

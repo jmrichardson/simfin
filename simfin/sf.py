@@ -22,7 +22,6 @@ for module in glob(os.path.join('modules', '*.py')):
 class SimFin(flatten.Flatten,
              features.Features,
              process.Process,
-             random_forest.RandomForest,
              target.Target,
              catboost_target.CatboostTarget,
              predict_features.PredictFeatures,

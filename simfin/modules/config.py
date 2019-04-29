@@ -2,10 +2,11 @@
 # Vars
 csv_file = "output-semicolon-wide.csv"
 min_history = 6
-flatten_by = "Revenues"
+# flatten_by = "Revenues"
 force = False
+GPU = True
 
-key_features = ['Revenues', 'COGS']
+key_features = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'EBITDA', 'Net Profit']
 
 # Simfin key features
 '''

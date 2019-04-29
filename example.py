@@ -17,11 +17,13 @@ else:
 
 # simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
 
-simfin = simfin.sample(frac=.1)
+# simfin = simfin.sample(frac=.1)
 
 # simfin = simfin.features()
 
 simin = simfin.predict_features()
+df = simfin.data_df
+
 
 
 

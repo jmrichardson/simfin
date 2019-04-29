@@ -36,7 +36,7 @@ def by_ticker(df, field, type, lag, thresh):
 
 class Target:
     def target(self, field='Flat_SPQA', type='class', lag=-1, thresh=None):
-        log.info("Adding target ...")
+        log.info(f"Adding target {field} ...")
         self.data_df = self.data_df.groupby('Ticker').apply(by_ticker, field, type, lag, thresh)
         self.data_df.reset_index(drop=True, inplace=True)
         self.data_df = self.data_df.replace([np.inf, -np.inf], np.nan)
