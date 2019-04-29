@@ -14,7 +14,7 @@ The nice folks at [SimFin](https://simfin.com/) provide freely available fundame
 simfin = SimFin().extract().flatten()
 ```
 
-* Add informative features with respect to each ticker symbol such as date information and technical indicators.  
+* Add informative features such as date information and technical indicators with respect to each ticker.  
 
     * For each ticker, calculate technical indicators such trailing twelve months (TTM) and momentum (MOM).  Todo: add more indicators
     * Date features added using [fastai datepart](https://docs.fast.ai/tabular.transform.html)

@@ -16,13 +16,14 @@ else:
     simfin = SimFin().flatten()
 
 # simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
-# simfin = simfin.query(['AA','FLWS'])
-# simfin = simfin.query(['FLWS', 'WSCO'])
-# simfin = simfin.query(['WSCO'])
 
-# simfin = simfin.sample(frac=.1)
+simfin = simfin.sample(frac=.1)
 
-simfin = simfin.features()
+# simfin = simfin.features()
+
+simin = simfin.predict_features()
+
+
 
 simfin = simfin.target(field='Flat_SPQA', type='class', lag=-1)
 
