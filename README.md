@@ -31,10 +31,18 @@ simfin = simfin.features()
 simfin = simfin.predict_features()
 ```
 
-:w
+* Add time series characteristics for each key feature using [tsfresh](https://tsfresh.readthedocs.io/en/latest/text/introduction.html).    The approach is to provide a rolling historical window to provide time components for each observation.  Thus allowing traditional machine learning algorithms to recognize patterns in sequential data.  
+
+    * For each ticker, calculate a rolling 16 quarter observation window of features.  
+    * Some quarter observations are missing from the SimFin dataset. Therefore, empty rows are inserted for missing observations to ensure the integrity of the rolling window.
+    * Unfortunately, tsfresh produces informative warning messages that cannot be suppressed at the moment which will flood the console.
+    * A significant amount of features are calculated requiring time and resources ([list of calculated features](https://tsfresh.readthedocs.io/en/latest/text/list_of_features.html)). Be patient ...
+
+```buildoutcfg
+simfin = simfin.tsf()
+```
 
 
-* Add technical indicators and time series characteristics
 * Add macro economic data (todo)
 * Add options data (todo)
 * Ensemble machine and deep learning predictors

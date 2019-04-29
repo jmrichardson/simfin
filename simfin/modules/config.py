@@ -6,7 +6,7 @@ min_history = 6
 force = False
 GPU = True
 
-key_features = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'EBITDA', 'Net Profit']
+key_features = ['Revenues', 'Net Profit']
 
 # Simfin key features
 '''

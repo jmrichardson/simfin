@@ -15,13 +15,17 @@ if not os.path.isfile('tmp/extract.zip'):
 else:
     simfin = SimFin().flatten()
 
-# simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
+simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
+
+# simfin = simfin.missing_rows()
 
 # simfin = simfin.sample(frac=.1)
 
 # simfin = simfin.features()
 
-simin = simfin.predict_features()
+# simin = simfin.predict_features()
+
+simfin = simfin.tsf()
 df = simfin.data_df
 
 
