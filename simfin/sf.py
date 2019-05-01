@@ -4,6 +4,7 @@ import pickle
 from sklearn.model_selection import train_test_split
 import pandas as pd
 from catboost import CatBoostClassifier
+import numpy as np
 import sys
 from importlib import reload, import_module
 from sklearn.feature_selection import VarianceThreshold
@@ -75,10 +76,10 @@ class SimFin(flatten.Flatten,
         self.data_df = self.data_df.sort_values(by='Date')
 
         # Get all independent features
-        self.X = self.data_df.filter(regex=r'^(?!Target).*$')
+        self.X = self.data_df.loc[:, self.data_df.columns != 'Target']
 
         # Get dependent feature
-        self.y = self.data_df.filter(regex=r'^Target$').values.ravel()
+        self.y = self.data_df.loc[:,'Target'].values.ravel()
 
         # Split without shuffle (Better to split with respect to date)
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
@@ -107,14 +108,36 @@ class SimFin(flatten.Flatten,
 
     def select_features(self, thresh=0):
 
-        self.split()
+        if 'Target' not in self.data_df.columns:
+            log.warning("No target.. Adding default target to model ...")
+            self = self.target()
+
+        self = self.split()
+
+        # Remove highly correlated columns
+        # corr_matrix = self.X_train.corr()
+        # Select upper triangle of correlation matrix
+        # upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
+        # Find index of feature columns with correlation greater than 0.9X
+        # to_drop = [column for column in upper.columns if any(abs(upper[column]) >= 0.99)]
+        # print(f'There are {len(to_drop)} correlated columns to remove.')
+        # print(to_drop)
+
         model = CatBoostClassifier(verbose=0)
         log.info("Generating feature importance model ...")
         model.fit(self.X_train_split, self.y_train_split, eval_set=(self.X_val_split, self.y_val_split))
         self.importances = model.feature_importances_
         columns = [True if x > thresh else False for x in self.importances]
-        log.info(f'Selecting {sum(columns)} features out of {len(self.X_train.columns)}')
-        self.X_train = self.X_train.loc[:, columns]
+        log.info(f'Selecting {sum(columns)} features out of {len(self.data_df)}')
+        names = ['Date', 'Ticker']
+        names = names + self.X_train.loc[1, columns].index.values.tolist()
+        names.append('Target')
+        names
+        self.data_df = self.data_df.loc[:, names]
+
+
+
+        self = self.split()
 
         return self
 

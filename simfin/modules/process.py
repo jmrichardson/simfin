@@ -20,8 +20,10 @@ def by_ticker(df, impute):
     index = df.loc[:, ['Date', 'Ticker']]
     X = df.drop(['Date', 'Ticker'], axis=1)
 
-    X = X.filter(regex=r'^(?!Target).*$')
-    y = df.filter(regex=r'^Target$')
+    # X = X.filter(regex=r'^(?!Target).*$')
+    X = X.loc[:, X.columns != 'Target']
+    # y = df.filter(regex=r'^Target$')
+    y = df.loc[:, 'Target'].values.ravel()
 
     # Get original column names
     X = X.dropna(axis=1, how='all').astype(float)

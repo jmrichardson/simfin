@@ -1,3 +1,5 @@
+# UNDER CONSTRUCTION - ALPHA STATUS!
+
 ### SimFin Predict  
 
 The nice folks at [SimFin](https://simfin.com/) provide freely available fundamental financial data which also includes daily pricing data.  The information can be downloaded in bulk but also requires a bit of work to prepare the data for analysis.  Simfin Predict is an expressive python framework designed to easily process SimFin information for analysis and to predict future price movement.
@@ -31,12 +33,12 @@ simfin = simfin.features()
 simfin = simfin.predict_features()
 ```
 
-* Add time series characteristics for each key feature using [tsfresh](https://tsfresh.readthedocs.io/en/latest/text/introduction.html).    The approach is to provide a rolling historical window to provide time components for each observation.  Thus allowing traditional machine learning algorithms to recognize patterns in sequential data.  
+* Add time series characteristics for each key feature using [tsfresh](https://tsfresh.readthedocs.io/en/latest/text/introduction.html).    The approach is to provide a rolling historical window to provide time components for each observation.  Thus, allowing traditional machine learning algorithms to recognize patterns in sequential data.  
 
-    * For each ticker, calculate a rolling 16 quarter observation window of features.  
+    * For each ticker, create a rolling 16 quarter observation window of calculated features.  
     * Some quarter observations are missing from the SimFin dataset. Therefore, empty rows are inserted for missing observations to ensure the integrity of the rolling window.
     * Unfortunately, tsfresh produces informative warning messages that cannot be suppressed at the moment which will flood the console.
-    * A significant amount of features are calculated requiring time and resources ([list of calculated features](https://tsfresh.readthedocs.io/en/latest/text/list_of_features.html)). Be patient ...
+    * A significant amount of features are calculated requiring time (be patient) and resources ([list of calculated features](https://tsfresh.readthedocs.io/en/latest/text/list_of_features.html)). 
 
 ```buildoutcfg
 simfin = simfin.tsf()

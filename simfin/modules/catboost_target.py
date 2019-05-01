@@ -16,6 +16,7 @@ train_score = 0
 def objective(simfin, eval_metric, space):
     global iteration, best_iteration, best_score, train_score
 
+
     iteration += 1
     log.info(f'Iteration: {iteration} ...')
     model = CatBoostClassifier(**space, random_state=123)
@@ -37,6 +38,9 @@ class CatboostTarget:
     def catboost_target(self, init_learning_rate=.025, max_evals=100, eval_metric="Precision", od_wait=150, verbose=0):
 
         global best_iteration, best_score, iteration
+
+        self = self.process(impute=False)
+        self = self.simfin.split()
 
         iteration = 0
         best_score = 0
