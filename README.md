@@ -20,6 +20,11 @@ simfin = SimFin().extract().flatten()
 
     * For each ticker, calculate technical indicators such as trailing twelve months (TTM) and momentum (MOM).  Todo: add more indicators
     * Date features added using [fastai datepart](https://docs.fast.ai/tabular.transform.html)
+    
+* Automatic feature engineering.  Using the powerful tool [featuretools](https://www.featuretools.com/), new features are created using transform primitives.
+
+    * We take a multi-step process to feature engineering rather than a brute force of all possible combinations of transform primitives (ie: subtraction, addition, division).  Each step involves generating new features using a single primitive, then dimensionality is reduced using a ML model.  This avoids the significant overhead of generating potentially useless features and processing time.
+    * We also initially divide the feature universe into pricing and fundamental categories due to the characteristic differences. The final step combines both buckets using the division primitive (ratio).
 
 ```buildoutcfg
 simfin = simfin.features()

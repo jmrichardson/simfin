@@ -106,18 +106,25 @@ class SimFin(flatten.Flatten,
         self.X_test = self.X_test.astype(float)
         return self
 
-    def important_features(self, thresh=0, exclude_regex=""):
+    def important_features(self, thresh=0, include_regex="", exclude_regex=""):
 
-        if len(exclude_regex) > 0:
-            self.temp_df = self.data_df
-            self.data_df = self.data_df.filter(regex="^((?!(" + exclude_regex + ")).)*$")
+        self.temp_df = self.data_df
 
         if 'Target' not in self.data_df.columns:
             log.warning("No target.. Adding default target to model ...")
             self = self.target()
+
+        if len(include_regex) > 0:
+            self.data_df = pd.concat([self.temp_df.loc[:, ['Date', 'Ticker']],
+                                      self.data_df.filter(regex="(" + include_regex + ")"),
+                                      self.data_df['Target']], axis=1)
+
+        if len(exclude_regex) > 0:
+            self.data_df = self.data_df.filter(regex="^((?!(" + exclude_regex + ")).)*$")
+
         self = self.split()
         log.info("Generating feature importance model ....")
-        model = CatBoostClassifier(od_type='Iter', od_wait=50, verbose=1)
+        model = CatBoostClassifier(od_type='Iter', od_wait=50, verbose=0)
         model.fit(self.X_train_split, self.y_train_split, eval_set=(self.X_val_split, self.y_val_split))
         df = pd.DataFrame(model.feature_importances_).T
         df.columns = self.X_train_split.columns.values.tolist()
@@ -126,13 +133,12 @@ class SimFin(flatten.Flatten,
 
         df = df.loc[df.iloc[:, 0] > thresh]
         self.feature_importance = df
-        if len(exclude_regex) > 0:
-            self.data_df = self.temp_df
+        self.data_df = self.temp_df
         return self
 
     def select_features(self, thresh=0):
 
-        self = self.important_features()
+        self = self.important_features(thresh=thresh)
         columns = self.feature_importance.index
         names = ['Date', 'Ticker']
         names = names + self.X_train_split.loc[1, columns].index.values.tolist()
