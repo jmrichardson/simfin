@@ -1,40 +1,32 @@
-import pandas as pd
 import featuretools as ft
 from config import *
 
 
-key_features = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'EBITDA', 'Net Profit',
-            'Cash & Cash Equivalents', 'Receivables', 'Current Assets',  'Total Assets', 'Short term debt', 'Accounts Payable',
-            'Current Liabilities', 'Long Term Debt', 'Total Liabilities', 'Share Capital', 'Total Equity',
-            'Free Cash Flow', 'Gross Margin', 'Operating Margin', 'Net Profit Margin', 'Return on Equity',
-            'Return on Assets', 'Current Ratio', 'Liabilities to Equity Ratio', 'Debt to Assets Ratio',
-            'EV / EBITDA', 'EV / Sales', 'Book to Market', 'Operating Income / EV', 'Enterprise Value',
-            'Flat_Basic Earnings Per Share', 'Flat_Common Earnings Per Share', 'Flat_Diluted Earnings Per Share',
-            'Flat_Basic PE', 'Flat_Common PE', 'Flat_Diluted PE']
+def ft_dfs(df, prim):
+    # Make an entityset and add the entity
+    es = ft.EntitySet(id='simfin')
+    es.entity_from_dataframe(entity_id='simfin', dataframe=df, make_index=True, index='index')
+    fm, fd = ft.dfs(entityset=es, target_entity='simfin', trans_primitives=prim, verbose=True, )
+    return fm
 
-key_features = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'EBITDA', 'Net Profit',
-            'Cash & Cash Equivalents', 'Receivables', 'Current Assets',  'Total Assets', 'Short term debt', 'Accounts Payable',
-            'Current Liabilities', 'Long Term Debt', 'Total Liabilities', 'Share Capital', 'Total Equity',]
+top_features = 20
 
-# key_features = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'EBITDA', 'Net Profit']
-# key_features = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'Net Profit']
-# key_features = ['Revenues', 'COGS', 'SG&A']
+# Get top important features
+self = self.important_features(exclude_regex='Flat_')
+data = self.X.loc[:, self.feature_importance.index[:top_features]]
+# Feature engineer
+data = ft_dfs(data, ['subtract_numeric', 'add_numeric'])
+new_cols = data.columns.difference(self.data_df.columns)
+self.data_df = self.data_df.merge(data[new_cols], left_index=True, right_index=True, how='outer')
 
-data = X.loc[:, key_features]
-d = ft.primitives.list_primitives()
+top_features = 50
 
-# Make an entityset and add the entity
-es = ft.EntitySet(id='simfin')
-es.entity_from_dataframe(entity_id='simfin', dataframe=data,
-                         make_index=True, index='index')
+self = self.important_features(exclude_regex='Flat_')
+data = self.X.loc[:, self.feature_importance.index[:top_features]]
+data = ft_dfs(data, ['divide_numeric'])
+new_cols = data.columns.difference(self.data_df.columns)
+self.data_df = self.data_df.merge(data[new_cols], left_index=True, right_index=True, how='outer')
 
-# Run deep feature synthesis with transformation primitives
-fm, fd = ft.dfs(entityset=es, target_entity='simfin',
-                trans_primitives=['add_numeric', 'divide_numeric'],
-                # features_only=True,
-                # n_jobs=2,
-                # max_features=2,
-                verbose=True)
 
-# fm
-fd
+self = self.important_features(exclude_regex='Flat_')
+

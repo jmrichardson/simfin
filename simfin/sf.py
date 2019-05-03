@@ -73,7 +73,7 @@ class SimFin(flatten.Flatten,
 
         log.info("Splitting data set ...")
 
-        self.data_df = self.data_df.sort_values(by='Date')
+        self.data_df = self.data_df.sort_values(by='Date').reset_index(drop=True)
 
         # Get all independent features
         self.X = self.data_df.loc[:, self.data_df.columns != 'Target']
@@ -106,39 +106,39 @@ class SimFin(flatten.Flatten,
         self.X_test = self.X_test.astype(float)
         return self
 
-    def select_features(self, thresh=0):
+    def important_features(self, thresh=0, exclude_regex=""):
+
+        if len(exclude_regex) > 0:
+            self.temp_df = self.data_df
+            self.data_df = self.data_df.filter(regex="^((?!(" + exclude_regex + ")).)*$")
 
         if 'Target' not in self.data_df.columns:
             log.warning("No target.. Adding default target to model ...")
             self = self.target()
-
         self = self.split()
-
-        # Remove highly correlated columns
-        # corr_matrix = self.X_train.corr()
-        # Select upper triangle of correlation matrix
-        # upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
-        # Find index of feature columns with correlation greater than 0.9X
-        # to_drop = [column for column in upper.columns if any(abs(upper[column]) >= 0.99)]
-        # print(f'There are {len(to_drop)} correlated columns to remove.')
-        # print(to_drop)
-
-        model = CatBoostClassifier(verbose=0)
-        log.info("Generating feature importance model ...")
+        log.info("Generating feature importance model ....")
+        model = CatBoostClassifier(od_type='Iter', od_wait=50, verbose=1)
         model.fit(self.X_train_split, self.y_train_split, eval_set=(self.X_val_split, self.y_val_split))
-        self.importances = model.feature_importances_
-        columns = [True if x > thresh else False for x in self.importances]
-        log.info(f'Selecting {sum(columns)} features out of {len(self.data_df)}')
+        df = pd.DataFrame(model.feature_importances_).T
+        df.columns = self.X_train_split.columns.values.tolist()
+        df = df.T.sort_values(by=0, ascending=False)
+        df.columns = ['feature']
+
+        df = df.loc[df.iloc[:, 0] > thresh]
+        self.feature_importance = df
+        if len(exclude_regex) > 0:
+            self.data_df = self.temp_df
+        return self
+
+    def select_features(self, thresh=0):
+
+        self = self.important_features()
+        columns = self.feature_importance.index
         names = ['Date', 'Ticker']
-        names = names + self.X_train.loc[1, columns].index.values.tolist()
+        names = names + self.X_train_split.loc[1, columns].index.values.tolist()
         names.append('Target')
-        names
         self.data_df = self.data_df.loc[:, names]
-
-
-
         self = self.split()
-
         return self
 
 

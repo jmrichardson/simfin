@@ -15,7 +15,7 @@ if not os.path.isfile('tmp/extract.zip'):
 else:
     simfin = SimFin().flatten()
 
-simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
+# simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
 
 # simfin = simfin.missing_rows()
 
@@ -27,6 +27,15 @@ simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
 
 simfin = simfin.target()
 simfin = simfin.split()
+self = simfin
+df = simfin.data_df
+
+
+
+
+
+
+
 
 
 
