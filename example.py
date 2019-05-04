@@ -32,6 +32,19 @@ df = simfin.data_df
 
 
 
+df = simfin.data_df
+X = simfin.X
+
+y = simfin.y
+X_train = simfin.X_train
+y_train = simfin.y_train
+X_train_split = simfin.X_train_split
+y_train_split = simfin.y_train_split
+X_val_split = simfin.X_val_split
+y_val_split = simfin.y_val_split
+groups = simfin.groups
+X_test = simfin.X_test
+y_test = simfin.y_test
 
 
 
@@ -49,25 +62,6 @@ simfin = simfin.target(field='Flat_SPQA', type='class', lag=-1)
 # simfin.catboost_target(init_learning_rate=.025, max_evals=50, eval_metric="Precision", od_wait=100, verbose=0)
 # simfin.catboost_target(init_learning_rate=.05, max_evals=2, eval_metric="Precision", od_wait=10, verbose=1)
 simfin = simfin.catboost_target(init_learning_rate=.025, max_evals=2, eval_metric="Precision", od_wait=10, verbose=0)
-
-
-
-
-
-df = simfin.data_df
-X = simfin.X
-
-y = simfin.y
-X_train = simfin.X_train
-y_train = simfin.y_train
-X_train_split = simfin.X_train_split
-y_train_split = simfin.y_train_split
-X_val_split = simfin.X_val_split
-y_val_split = simfin.y_val_split
-groups = simfin.groups
-X_test = simfin.X_test
-y_test = simfin.y_test
-
 
 len(X_train) + len(y_test)
 
