@@ -42,6 +42,15 @@ simfin = simfin.features()
 simfin = simfin.predict_features()
 ```
 
+* Add Temporal Convolutional Network classification and regression features.  Thanks to [Keras TCN](https://github.com/philipperemy/keras-tcn), we generate a deep learning model to forecast price movement.
+
+    * Because observations contain patterns across quarters, 
+    
+```buildoutcfg
+simfin = simfin.tcn()
+```
+
+
 * Add time series characteristics for each key feature using [tsfresh](https://tsfresh.readthedocs.io/en/latest/text/introduction.html).    The approach is to provide a rolling historical window to provide time components for each observation.  Thus, allowing traditional machine learning algorithms to recognize patterns in sequential data.  
 
     * For each ticker, create a rolling 16 quarter observation window of calculated features.  
