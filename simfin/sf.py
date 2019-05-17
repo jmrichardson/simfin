@@ -81,7 +81,7 @@ class SimFin(flatten.Flatten,
             log.info(f"Loading cache from {path} ...")
             return pickle.load(open(path, "rb"))
 
-    def split(self, validation=True, test_size=.2):
+    def split(self, test_size=.2):
 
         log.info("Splitting data set ...")
 
@@ -91,39 +91,44 @@ class SimFin(flatten.Flatten,
         # Get all independent features
         self.X = self.data_df.loc[:, self.data_df.columns != 'Target']
 
-        # Get dependent feature
+        # Get all dependent feature
         self.y = self.data_df.loc[:,'Target'].values.ravel()
 
-        # Split without shuffle (Better to split with respect to date)
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+        self.X_train_val, self.X_test, self.y_train_val, self.y_test = train_test_split(
             self.X, self.y, test_size=test_size, shuffle=False, random_state=1)
 
-        if validation:
-            self.X_train_split, self.X_val_split, self.y_train_split, self.y_val_split = train_test_split(
-                self.X_train, self.y_train, test_size=test_size, shuffle=False , random_state=1)
+        self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(
+            self.X_train_val, self.y_train_val, test_size=test_size, shuffle=False , random_state=1)
 
         # Need groups together for catboost (may not ever use but just in case)
         # self.X_train = self.X_train.sort_values(by=['Ticker', 'Date'], ascending=[True, True]).reset_index(drop=True)
         self.groups = self.X_train['Ticker']
-        self.groups_split = self.X_train_split['Ticker']
+        self.groups_split = self.X_train['Ticker']
 
         self.X = self.X.drop(['Date', 'Ticker'], axis=1)
-        self.X_train = self.X_train.drop(['Date', 'Ticker'], axis=1)
         self.X = self.X.astype(float)
+
+        self.X_train_val = self.X_train_val.drop(['Date', 'Ticker'], axis=1)
+        self.X_train_val = self.X_train_val.astype(float)
+        self.y_train_val = self.y_train_val.astype(float)
+
+        self.X_train = self.X_train.drop(['Date', 'Ticker'], axis=1)
         self.X_train = self.X_train.astype(float)
-        self.X_train_split = self.X_train_split.drop(['Date', 'Ticker'], axis=1)
-        self.X_train_split = self.X_train_split.astype(float)
-        self.X_val_split = self.X_val_split.drop(['Date', 'Ticker'], axis=1)
-        self.y_train_split = self.y_train_split.astype(float)
+        self.y_train = self.y_train.astype(float)
+
+        self.X_val = self.X_val.drop(['Date', 'Ticker'], axis=1)
+        self.X_val = self.X_val.astype(float)
+        self.y_val = self.y_val.astype(float)
+
         self.X_test = self.X_test.drop(['Date', 'Ticker'], axis=1)
         self.X_test = self.X_test.astype(float)
+        self.y_test = self.y_test.astype(float)
 
         self.X_seq, self.y_seq = data_seq(self.X, self.y)
+        self.X_train_val_seq, self.y_train_val_seq = data_seq(self.X_train_val, self.y_train_val)
         self.X_train_seq, self.y_train_seq = data_seq(self.X_train, self.y_train)
-        self.X_train_split_seq, self.y_train_split_seq = data_seq(self.X_train_split, self.y_train_split)
-        self.X_val_split_seq, self.y_val_split_seq = data_seq(self.X_val_split, self.y_val_split)
+        self.X_val_seq, self.y_val_seq = data_seq(self.X_val, self.y_val)
         self.X_test_seq, self.y_test_seq = data_seq(self.X_test, self.y_test)
-
 
         return self
 

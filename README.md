@@ -15,9 +15,9 @@ simfin = SimFin().extract().flatten()
 ```
 
 
-Automatic feature engineering.  Using the powerful tool [featuretools](https://www.featuretools.com/), new features are created using transform primitives.
-* We take a multi-step process to feature engineering rather than a brute force of all possible combinations of transform primitives (ie: subtraction, addition, division).  Each step involves generating new features using a single primitive, then dimensionality is reduced using a ML model.  This avoids the significant overhead of generating potentially useless features and processing time.
-* We also initially divide the feature universe into pricing and fundamental categories due to the characteristic differences. The final step combines both buckets using the division primitive (ratio).
+Automatic feature engineering.  Using the powerful tool [featuretools](https://www.featuretools.com/), new features are created from transform primitives.
+* Multi-step feature engineering rather than brute force of all possible combinations of transform primitives (ie: subtraction, addition, division).  Each step involves generating new features using a single primitive, then dimensionality is reduced using a ML model.  This avoids the significant overhead of generating potentially useless features and processing time.
+* Divide the feature universe into pricing and fundamental categories due to the characteristic differences. The final step combines both buckets using the division primitive (ratio).
 ```buildoutcfg
 simfin = simfin.engineer()
 ```
@@ -29,10 +29,20 @@ Add informative features such as date information and technical indicators with 
 ```buildoutcfg
 simfin = simfin.features()
 ```
+
+
+Add time series characteristics for each key feature using [tsfresh](https://tsfresh.readthedocs.io/en/latest/text/introduction.html).    The approach is to provide a rolling historical window to provide time components for each observation.  Thus, allowing traditional machine learning algorithms to recognize patterns in sequential data.  
+* For each ticker, create a rolling 16 quarter observation window of calculated features.  
+* Some quarter observations are missing from the SimFin dataset. Therefore, empty rows are inserted for missing observations to ensure the integrity of the rolling window.
+* Unfortunately, tsfresh produces informative warning messages that cannot be suppressed at the moment which will flood the console.
+* A significant amount of features are calculated requiring time (be patient) and resources ([list of calculated features](https://tsfresh.readthedocs.io/en/latest/text/list_of_features.html)). 
+```buildoutcfg
+simfin = simfin.tsf()
+```
     
 
-Add predicted key features. The smart folks at [Euclidean Technologies](https://www.euclidean.com/) published a [paper](https://arxiv.org/pdf/1711.04837.pdf) which demonstrates value in predicting future fundamentals (features). These predictions can then be used in future forecasts.
-*  Regression and Classification predictions are automatically made on all key features (defined in config.py).
+Add predicted key features. The smart folks at [Euclidean Technologies](https://www.euclidean.com/) published a [paper](https://arxiv.org/pdf/1711.04837.pdf) demonstrating value in predicting future fundamentals (features).
+*  Regression prediction made on all important features.
 ```buildoutcfg
 simfin = simfin.predict_features()
 ```
@@ -45,14 +55,7 @@ simfin = simfin.tcn()
 ```
     
 
-Add time series characteristics for each key feature using [tsfresh](https://tsfresh.readthedocs.io/en/latest/text/introduction.html).    The approach is to provide a rolling historical window to provide time components for each observation.  Thus, allowing traditional machine learning algorithms to recognize patterns in sequential data.  
-* For each ticker, create a rolling 16 quarter observation window of calculated features.  
-* Some quarter observations are missing from the SimFin dataset. Therefore, empty rows are inserted for missing observations to ensure the integrity of the rolling window.
-* Unfortunately, tsfresh produces informative warning messages that cannot be suppressed at the moment which will flood the console.
-* A significant amount of features are calculated requiring time (be patient) and resources ([list of calculated features](https://tsfresh.readthedocs.io/en/latest/text/list_of_features.html)). 
-```buildoutcfg
-simfin = simfin.tsf()
-```
+
 
 
 

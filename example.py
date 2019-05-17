@@ -18,15 +18,23 @@ else:
 # simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
 
 
+
+self = simfin
+df = simfin.data_df
+
+
+
+
+
 # simfin = simfin.sample(frac=.1)
 
 # Add
-simfin = simfin.features()
+# simfin = simfin.features()
 
 # simin = simfin.predict_features()
 
-simfin = simfin.missing_rows()
-simfin = simfin.history()
+# simfin = simfin.missing_rows()
+# simfin = simfin.history()
 simfin = simfin.target()
 simfin = simfin.process(impute=True)
 simfin = simfin.split()
