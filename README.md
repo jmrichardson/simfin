@@ -11,9 +11,9 @@ simfin = SimFin().extract().flatten()
 ```
 Extract and flatten [SimFin bulk](https://simfin.com/data/access/api) data
 
-    * Bulk download csv file requires [extraction](https://github.com/SimFin/bd-extractor) into a SimFinDataset. This dataset is enumerated into a sparse pandas dataframe (daily combined with quarterly data) using the extract() method.  
-    * The extracted dataframe can then be flattened into quarterly observations while preserving daily closing price history. The flatten() method calculates close monthly and quarterly averages and creates new features for 1, 2, 3, 6, 9 and 12 previous months and 1, 2, 3, 4, 5, 6, 8 and 12 quarters respectively. 
-    * In addition to SimFin's ratios, a handful of other feature ratios are calculated.
+* Bulk download csv file requires [extraction](https://github.com/SimFin/bd-extractor) into a SimFinDataset. This dataset is enumerated into a sparse pandas dataframe (daily combined with quarterly data) using the extract() method.  
+* The extracted dataframe can then be flattened into quarterly observations while preserving daily closing price history. The flatten() method calculates close monthly and quarterly averages and creates new features for 1, 2, 3, 6, 9 and 12 previous months and 1, 2, 3, 4, 5, 6, 8 and 12 quarters respectively. 
+* In addition to SimFin's ratios, a handful of other feature ratios are calculated.
 
 
 ```buildoutcfg
