@@ -21,7 +21,7 @@ df.columns.values[-1] = "Target"
 hf_val = h2o.H2OFrame(df)
 
 # Identify predictors and response
-x = hf.columns
+x = hf_train.columns
 y = "Target"
 x.remove(y)
 
@@ -31,5 +31,9 @@ aml.train(x=x, y=y, training_frame=hf_train, validation_frame=hf_val)
 lb = aml.leaderboard
 lb.head(rows=lb.nrows)
 
-
+hf_test = h2o.H2OFrame(self.X_test)
+hf_y = h2o.H2OFrame(self.y_test)
+hf_y
+pred = aml.predict(hf_test)
+pred
 

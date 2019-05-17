@@ -108,20 +108,16 @@ class SimFin(flatten.Flatten,
         self.X = self.X.drop(['Date', 'Ticker'], axis=1)
         self.X = self.X.astype(float)
 
-        self.X_train_val = self.X_train_val.drop(['Date', 'Ticker'], axis=1)
-        self.X_train_val = self.X_train_val.astype(float)
+        self.X_train_val = self.X_train_val.drop(['Date', 'Ticker'], axis=1).astype(float).reset_index(drop=True)
         self.y_train_val = self.y_train_val.astype(float)
 
-        self.X_train = self.X_train.drop(['Date', 'Ticker'], axis=1)
-        self.X_train = self.X_train.astype(float)
+        self.X_train = self.X_train.drop(['Date', 'Ticker'], axis=1).astype(float).reset_index(drop=True)
         self.y_train = self.y_train.astype(float)
 
-        self.X_val = self.X_val.drop(['Date', 'Ticker'], axis=1)
-        self.X_val = self.X_val.astype(float)
+        self.X_val = self.X_val.drop(['Date', 'Ticker'], axis=1).astype(float).reset_index(drop=True)
         self.y_val = self.y_val.astype(float)
 
-        self.X_test = self.X_test.drop(['Date', 'Ticker'], axis=1)
-        self.X_test = self.X_test.astype(float)
+        self.X_test = self.X_test.drop(['Date', 'Ticker'], axis=1).astype(float).reset_index(drop=True)
         self.y_test = self.y_test.astype(float)
 
         self.X_seq, self.y_seq = data_seq(self.X, self.y)

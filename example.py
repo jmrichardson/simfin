@@ -47,18 +47,20 @@ simfin = simfin.split()
 
 self = simfin
 df = simfin.data_df
-X = simfin.X
 
+X = simfin.X
 y = simfin.y
 X_train = simfin.X_train
 y_train = simfin.y_train
-X_train_split = simfin.X_train_split
-y_train_split = simfin.y_train_split
-X_val_split = simfin.X_val_split
-y_val_split = simfin.y_val_split
+X_train_val = simfin.X_train_val
+y_train_val = simfin.y_train_val
+X_val = simfin.X_val
+y_val = simfin.y_val
 groups = simfin.groups
 X_test = simfin.X_test
 y_test = simfin.y_test
+
+
 X_seq = simfin.X_seq
 y_seq = simfin.y_seq
 X_train_seq = simfin.X_train_seq
