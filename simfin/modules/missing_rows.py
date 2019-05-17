@@ -7,7 +7,7 @@ import numpy as np
 def by_ticker(df):
 
     ticker = str(df['Ticker'].iloc[0])
-    log.info("Processing {} ...".format(ticker))
+    # log.info("Processing {} ...".format(ticker))
 
     # Sort dataframe by date
     df = df.sort_values(by='Date')
@@ -25,7 +25,7 @@ def by_ticker(df):
                     new_df = pd.DataFrame([{'Date': new_date, 'Ticker': ticker}])
                     new_df['Missing_Row'] = 1
                     df = df.append(new_df, sort=False)
-                    log.info("Inserting empty row: {}".format(new_date))
+                    # log.info(f"Inserting empty row for {ticker}: {new_date}")
                     start_date = new_date
                 else:
                     break

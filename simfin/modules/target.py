@@ -42,7 +42,7 @@ class Target:
         self.data_df = self.data_df.replace([np.inf, -np.inf], np.nan)
 
         # Remove null target rows and sort by date
-        self.data_df = self.data_df[pd.notnull(self.data_df['Target'])].sort_values(by='Date')
+        self.data_df = self.data_df[pd.notnull(self.data_df['Target'])]
 
         return self
 

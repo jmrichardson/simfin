@@ -1,68 +1,46 @@
-from keras.layers import Dense
-from keras.models import Input, Model
-from keras.preprocessing.sequence import TimeseriesGenerator
-import pandas as pd
-import numpy as np
-from tcn import TCN
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from keras import Input, Model
 from keras.layers import Dense
-from tcn import compiled_tcn
+from tcn import compiled_tcn, TCN
+from keras.preprocessing.sequence import TimeseriesGenerator
 
-from tcn import TCN
+model = compiled_tcn(return_sequences=False,
+                     num_feat=X.shape[2],
+                     num_classes=2,
+                     nb_filters=24,
+                     kernel_size=8,
+                     dilations=[2 ** i for i in range(9)],
+                     nb_stacks=1,
+                     max_len=X.shape[1],
+                     use_skip_connections=True,
+                     )
 
-##
-# It's a very naive (toy) example to show how to do time series forecasting.
-# - There are no training-testing sets here. Everything is training set for simplicity.
-# - There is no input/output normalization.
-# - The model is simple.
-##
+model.fit(X_train, y_train, validation_data=(X_val, y_val), epochs=1, batch_size=256)
+# model.fit(X_train, y_train, epochs=10)
 
-
-lookback_window = 12  # months.
-
-X_data = np.array(X_train_split)
-y_data = np.array(y_train_split)
-
-x, y = [], []
-for i in range(lookback_window, len(X_data)):
-    x.append(X_data[i - lookback_window:i])
-    y.append(y_data[i])
-
-
-x = np.array(x)
-y = np.array(y)
-
-print(x.shape)
-print(y.shape)
-
-
-model = compiled_tcn(...)
-model.fit(x, y) # Keras model.
+print(y_val)
+a = model.predict(X_val)
+out = pd.DataFrame(a)
 
 
 
-
-
-
-
-i = Input(shape=(lookback_window, 83))
+i = Input(shape=(20, 84))
 m = TCN()(i)
-m = Dense(1, activation='linear')(m)
-
+m = Dense(1, activation='sigmoid')(m)
 model = Model(inputs=[i], outputs=[m])
-
 model.summary()
 
-model.compile('adam', 'mae')
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-print('Train...')
-model.fit(x, y, epochs=100, verbose=2)
+model.fit(X_train_split_seq, y_train_split_seq,
+          validation_data=(X_val_split_seq, y_val_split_seq),
+          epochs=200, verbose=2, batch_size=64)
+# model.fit(X, y, validation_data=(X_val, y_val), epochs=2, verbose=2)
 
-p = model.predict(x)
+a = model.predict(X_val)
+
 
 plt.plot(p)
 plt.plot(y)

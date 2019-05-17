@@ -15,9 +15,8 @@ if not os.path.isfile('tmp/extract.zip'):
 else:
     simfin = SimFin().flatten()
 
-simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
+# simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
 
-# simfin = simfin.missing_rows()
 
 # simfin = simfin.sample(frac=.1)
 
@@ -25,20 +24,19 @@ simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
 
 # simin = simfin.predict_features()
 
+simfin = simfin.missing_rows()
+simfin = simfin.history()
 simfin = simfin.target()
+simfin = simfin.process(impute=True)
 simfin = simfin.split()
 
 
-simfin = simfin.engineer()
 
 
+# simfin = simfin.engineer()
 
 
 self = simfin
-df = simfin.data_df
-
-
-
 df = simfin.data_df
 X = simfin.X
 
@@ -52,6 +50,17 @@ y_val_split = simfin.y_val_split
 groups = simfin.groups
 X_test = simfin.X_test
 y_test = simfin.y_test
+X_seq = simfin.X_seq
+y_seq = simfin.y_seq
+X_train_seq = simfin.X_train_seq
+y_train_seq = simfin.y_train_seq
+X_train_split_seq = simfin.X_train_split_seq
+y_train_split_seq = simfin.y_train_split_seq
+X_val_split_seq = simfin.X_val_split_seq
+y_val_split_seq = simfin.y_val_split_seq
+X_test_seq = simfin.X_test_seq
+y_test_seq = simfin.y_test_seq
+
 
 
 

@@ -100,8 +100,8 @@ class Flatten:
         self.data_df = self.data_df.groupby('Ticker').apply(by_ticker)
         self.data_df.reset_index(drop=True, inplace=True)
         self.data_df = self.data_df.replace([np.inf, -np.inf], np.nan)
-        self.flatten_df = self.data_df
         self.data_df.to_pickle(self.flatten_df_file)
+        self.flat_df = self.data_df.copy
 
         return self
 

@@ -6,7 +6,7 @@ import numpy as np
 
 
 # Check for missing quarters, insert null row and column
-def by_ticker(df, impute):
+def by_ticker(df, impute, indicate=False):
 
     ticker = str(df['Ticker'].iloc[0])
     # log.info("Processing {} ...".format(ticker))
@@ -23,7 +23,8 @@ def by_ticker(df, impute):
     # X = X.filter(regex=r'^(?!Target).*$')
     X = X.loc[:, X.columns != 'Target']
     # y = df.filter(regex=r'^Target$')
-    y = df.loc[:, 'Target'].values.ravel()
+    # y = df.loc[:, 'Target'].values.ravel()
+    y = df.loc[:, 'Target']
 
     # Get original column names
     X = X.dropna(axis=1, how='all').astype(float)
@@ -31,10 +32,12 @@ def by_ticker(df, impute):
     X_missing = pd.DataFrame()
 
     if impute:
-        missing = MissingIndicator(features='all')
-        missing.fit(X)
-        X_missing = pd.DataFrame(missing.transform(X)).astype(float)
-        X_missing.columns = "Missing_" + col_names
+
+        if indicate:
+            missing = MissingIndicator(features='all')
+            missing.fit(X)
+            X_missing = pd.DataFrame(missing.transform(X)).astype(float)
+            X_missing.columns = "Missing_" + col_names
 
         imputer = SimpleImputer(strategy="median")
         imputer.fit(X)

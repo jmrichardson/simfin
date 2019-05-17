@@ -20,6 +20,17 @@ for module in glob(os.path.join('modules', '*.py')):
     exec(f"from {module_name} import *")
 
 
+# Create data sequence from data set
+def data_seq(X, y, lookback=20):
+    X = np.array(X)
+    y = np.array(y)
+    X_data, y_data = [], []
+    for i in range(lookback, len(X) + 1):
+        X_data.append(X[i - lookback:i])
+        y_data.append(y[i - 1])
+    return [np.array(X_data), np.array(y_data)]
+
+
 class SimFin(flatten.Flatten,
              features.Features,
              process.Process,
@@ -74,7 +85,8 @@ class SimFin(flatten.Flatten,
 
         log.info("Splitting data set ...")
 
-        self.data_df = self.data_df.sort_values(by='Date').reset_index(drop=True)
+        # self.data_df = self.data_df.sort_values(by='Date').reset_index(drop=True)
+        self.data_df = self.data_df.reset_index(drop=True)
 
         # Get all independent features
         self.X = self.data_df.loc[:, self.data_df.columns != 'Target']
@@ -105,6 +117,14 @@ class SimFin(flatten.Flatten,
         self.y_train_split = self.y_train_split.astype(float)
         self.X_test = self.X_test.drop(['Date', 'Ticker'], axis=1)
         self.X_test = self.X_test.astype(float)
+
+        self.X_seq, self.y_seq = data_seq(self.X, self.y)
+        self.X_train_seq, self.y_train_seq = data_seq(self.X_train, self.y_train)
+        self.X_train_split_seq, self.y_train_split_seq = data_seq(self.X_train_split, self.y_train_split)
+        self.X_val_split_seq, self.y_val_split_seq = data_seq(self.X_val_split, self.y_val_split)
+        self.X_test_seq, self.y_test_seq = data_seq(self.X_test, self.y_test)
+
+
         return self
 
     def important_features(self, thresh=0, include_regex="", exclude_regex=""):
