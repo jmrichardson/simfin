@@ -6,41 +6,41 @@ The nice folks at [SimFin](https://simfin.com/) provide freely available fundame
 
 ### Features
 
+```buildoutcfg
+simfin = SimFin().extract().flatten()
+```
 * Extract and flatten [SimFin bulk](https://simfin.com/data/access/api) data
 
     * Bulk download csv file requires [extraction](https://github.com/SimFin/bd-extractor) into a SimFinDataset. This dataset is enumerated into a sparse pandas dataframe (daily combined with quarterly data) using the extract() method.  
     * The extracted dataframe can then be flattened into quarterly observations while preserving daily closing price history. The flatten() method calculates close monthly and quarterly averages and creates new features for 1, 2, 3, 6, 9 and 12 previous months and 1, 2, 3, 4, 5, 6, 8 and 12 quarters respectively. 
     * In addition to SimFin's ratios, a handful of other feature ratios are calculated.
 
-```buildoutcfg
-simfin = SimFin().extract().flatten()
-```
 
+```buildoutcfg
+simfin = simfin.engineer()
+```
 * Automatic feature engineering.  Using the powerful tool [featuretools](https://www.featuretools.com/), new features are created using transform primitives.
 
     * We take a multi-step process to feature engineering rather than a brute force of all possible combinations of transform primitives (ie: subtraction, addition, division).  Each step involves generating new features using a single primitive, then dimensionality is reduced using a ML model.  This avoids the significant overhead of generating potentially useless features and processing time.
     * We also initially divide the feature universe into pricing and fundamental categories due to the characteristic differences. The final step combines both buckets using the division primitive (ratio).
 
-```buildoutcfg
-simfin = simfin.engineer()
-```
 
+```buildoutcfg
+simfin = simfin.features()
+```
 * Add informative features such as date information and technical indicators with respect to each ticker.  
 
     * For each ticker, calculate technical indicators such as trailing twelve months (TTM) and momentum (MOM).  Todo: add more indicators
     * Date features added using [fastai datepart](https://docs.fast.ai/tabular.transform.html)
     
-```buildoutcfg
-simfin = simfin.features()
-```
-
-* Add predicted key features. The smart folks at [Euclidean Technologies](https://www.euclidean.com/) published a [paper](https://arxiv.org/pdf/1711.04837.pdf) which demonstrates value in predicting future fundamentals (features). These predictions can then be used in future forecasts.
-
-    *  Regression and Classification predictions are automatically made on all key features (defined in config.py).
 
 ```buildoutcfg
 simfin = simfin.predict_features()
 ```
+* Add predicted key features. The smart folks at [Euclidean Technologies](https://www.euclidean.com/) published a [paper](https://arxiv.org/pdf/1711.04837.pdf) which demonstrates value in predicting future fundamentals (features). These predictions can then be used in future forecasts.
+
+    *  Regression and Classification predictions are automatically made on all key features (defined in config.py).
+
 
 * Add Temporal Convolutional Network classification and regression features.  Thanks to [Keras TCN](https://github.com/philipperemy/keras-tcn), we generate a deep learning model to forecast price movement.
 

@@ -20,7 +20,8 @@ else:
 
 # simfin = simfin.sample(frac=.1)
 
-# simfin = simfin.features()
+# Add
+simfin = simfin.features()
 
 # simin = simfin.predict_features()
 
