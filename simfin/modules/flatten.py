@@ -26,12 +26,12 @@ def by_ticker(df):
         .rolling(92, min_periods=1).apply(lambda x: x[x.last_valid_index()], raw=False)
 
     # Add a few more ratios
-    df['Flat_Basic Earnings Per Share'] = df['Net Profit'] / df['Avg. Basic Shares Outstanding'] * 1000
-    df['Flat_Common Earnings Per Share'] = df['Net Profit'] / df['Common Shares Outstanding'] * 1000
-    df['Flat_Diluted Earnings Per Share'] = df['Net Profit'] / df['Avg. Diluted Shares Outstanding'] * 1000
-    df['Flat_Basic PE'] = df['Share Price'] / df['Flat_Basic Earnings Per Share']
-    df['Flat_Common PE'] = df['Share Price'] / df['Flat_Common Earnings Per Share']
-    df['Flat_Diluted PE'] = df['Share Price'] / df['Flat_Diluted Earnings Per Share']
+    # df['Flat_Basic Earnings Per Share'] = df['Net Profit'] / df['Avg. Basic Shares Outstanding'] * 1000
+    # df['Flat_Common Earnings Per Share'] = df['Net Profit'] / df['Common Shares Outstanding'] * 1000
+    # df['Flat_Diluted Earnings Per Share'] = df['Net Profit'] / df['Avg. Diluted Shares Outstanding'] * 1000
+    # df['Flat_Basic PE'] = df['Share Price'] / df['Flat_Basic Earnings Per Share']
+    # df['Flat_Common PE'] = df['Share Price'] / df['Flat_Common Earnings Per Share']
+    # df['Flat_Diluted PE'] = df['Share Price'] / df['Flat_Diluted Earnings Per Share']
 
     # Average share prices for last 30 days
     df['Flat_SPQA'] = df['Share Price'].rolling(90, min_periods=1).mean()

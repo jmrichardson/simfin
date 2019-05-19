@@ -4,9 +4,16 @@ import pandas as pd
 
 h2o.init()
 
-feature = "Revenues"
 
-self = self.target(field=feature, type='regression')
+self = self.target(field="Revenues", type='regression')
+self.data_df.describe()
+max(self.data_df['Target'])
+
+
+
+
+
+
 self = self.process()
 self = self.split()
 

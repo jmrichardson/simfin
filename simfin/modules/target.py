@@ -4,17 +4,22 @@ from loguru import logger as log
 
 def by_ticker(df, field, type, lag, thresh):
 
-    # ticker = str(df['Ticker'].iloc[0])
+    ticker = str(df['Ticker'].iloc[0])
     # log.info(f"Adding target field {field} for {ticker}...")
 
-    # Create target field
-    field_name = 'Target'
-
     # Lag
-    df.loc[:, field_name] = df[field].shift(lag)
+    df.loc[:, 'Target'] = df[field].shift(lag)
 
     # Pct Diff
-    df.loc[:, field_name] = (df[field_name] - df[field]) / df[field]
+    df.loc[:, 'Target'] = (df['Target'] - df[field]) / df[field]
+
+    # Remove inf values (Target field)
+    df['Target'] = df['Target'].replace([np.inf, -np.inf], np.nan)
+
+    if max(df["Target"]) > 100000:
+        print(max(df["Target"]))
+        print(f"{ticker}")
+        assert("wtf")
 
     # Remove rows where target is nan
     # df = df[pd.notnull(df[field_name])]
@@ -39,10 +44,11 @@ class Target:
         log.info(f"Adding target {field} ...")
         self.data_df = self.data_df.groupby('Ticker').apply(by_ticker, field, type, lag, thresh)
         self.data_df.reset_index(drop=True, inplace=True)
-        self.data_df = self.data_df.replace([np.inf, -np.inf], np.nan)
 
         # Remove null target rows and sort by date
         self.data_df = self.data_df[pd.notnull(self.data_df['Target'])]
+
+        print(max(self.data_df["Target"]))
 
         return self
 

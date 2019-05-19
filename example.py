@@ -16,11 +16,21 @@ else:
     simfin = SimFin().flatten()
 
 # simfin = simfin.query(['FLWS','TSLA','A','AAPL','ADB','FB'])
+# simfin = simfin.query(['LUV', 'TSLA'])
+simfin = simfin.query(['LUV'])
+
+simfin = simfin.impute()
+simfin = simfin.outliers()
 
 
 
+simfin = simfin.missing_rows()
+
+field="Revenues"
+lag=-1
 self = simfin
 df = simfin.data_df
+self = self.target(field="Revenues", type='regression')
 
 
 
