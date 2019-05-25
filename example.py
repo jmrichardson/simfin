@@ -19,12 +19,18 @@ else:
 # simfin = simfin.query(['LUV', 'TSLA'])
 simfin = simfin.query(['LUV'])
 
-simfin = simfin.impute()
-simfin = simfin.outliers()
-
-
-
 simfin = simfin.missing_rows()
+simfin = simfin.outliers()
+simfin = simfin.impute()
+
+df = simfin.data_df
+self = simfin
+
+
+
+
+
+
 
 field="Revenues"
 lag=-1
