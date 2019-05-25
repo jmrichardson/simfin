@@ -1,4 +1,4 @@
-# UNDER CONSTRUCTION - ALPHA STATUS!
+# UNDER CONSTRUCTION - PRE ALPHA STATUS!
 
 ### SimFin Predict  
 
@@ -14,6 +14,20 @@ Extract and flatten [SimFin bulk](https://simfin.com/data/access/api) data
 simfin = SimFin().extract().flatten()
 ```
 
+Add empty rows for missing quarters...
+```buildoutcfg
+simfin = simfin.missing_rows()
+```
+
+Remove outliers ...
+```buildoutcfg
+simfin = simfin.outliers()
+```
+
+Impute missing data ...
+```buildoutcfg
+simfin = simfin.impute()
+```
 
 Automatic feature engineering.  Using the powerful tool [featuretools](https://www.featuretools.com/), new features are created from transform primitives.
 * Multi-step feature engineering rather than brute force of all possible combinations of transform primitives (ie: subtraction, addition, division).  Each step involves generating new features using a single primitive, then dimensionality is reduced using a ML model.  This avoids the significant overhead of generating potentially useless features and processing time.
