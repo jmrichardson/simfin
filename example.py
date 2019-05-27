@@ -19,12 +19,16 @@ else:
 # simfin = simfin.query(['LUV', 'TSLA'])
 simfin = simfin.query(['LUV'])
 
-simfin = simfin.missing_rows()
-simfin = simfin.outliers()
-simfin = simfin.impute()
+simfin = simfin.missing_rows().outliers().impute().history()
+
+simfin = simfin.target()
+
 
 df = simfin.data_df
 self = simfin
+
+X = df[['Flat_SPQA', 'Target']]
+
 
 
 

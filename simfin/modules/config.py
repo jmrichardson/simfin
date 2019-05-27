@@ -1,14 +1,17 @@
 
 # Vars
 csv_file = "output-semicolon-wide.csv"
-min_history = 6
+
+# Remove stocks with less than min_quarters of data
+min_quarters = 4
+
 # flatten_by = "Revenues"
 force = False
+
+# Use GPU if possible
 GPU = True
 
-# key_features = ['Revenues', 'Net Profit', 'Long Term Debt', 'Return on Equity']
-
-# Simfin key features
+# Import features
 key_features = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'EBITDA', 'Net Profit',
             'Cash & Cash Equivalents', 'Receivables', 'Current Assets',  'Total Assets', 'Short term debt', 'Accounts Payable',
             'Current Liabilities', 'Long Term Debt', 'Total Liabilities', 'Share Capital', 'Total Equity',
@@ -17,3 +20,6 @@ key_features = ['Revenues', 'COGS', 'SG&A', 'R&D', 'EBIT', 'EBITDA', 'Net Profit
             'EV / EBITDA', 'EV / Sales', 'Book to Market', 'Operating Income / EV', 'Enterprise Value',
             'Flat_Basic Earnings Per Share', 'Flat_Common Earnings Per Share', 'Flat_Diluted Earnings Per Share',
             'Flat_Basic PE', 'Flat_Common PE', 'Flat_Diluted PE']
+key_features = ['Revenues', 'Net Profit', 'Long Term Debt', 'Return on Equity']
+
+
