@@ -36,7 +36,7 @@ def by_ticker(df):
     # df['Flat_Common PE'] = df['Share Price'] / df['Flat_Common Earnings Per Share']
     # df['Flat_Diluted PE'] = df['Share Price'] / df['Flat_Diluted Earnings Per Share']
 
-    # Average share prices for last 30 days
+    # Average share price last 30 days
     df['Flat_SPQA'] = df['Share Price'].rolling(90, min_periods=1).mean()
     df['Flat_SPMA'] = df['Share Price'].rolling(30, min_periods=1).mean()
 

@@ -1,10 +1,10 @@
 ### SimFin
 
-The nice folks at [SimFin](https://simfin.com/) provide freely available fundamental financial data which also includes daily pricing data.  The information can be downloaded in bulk but also requires a bit of work to prepare the data for analysis.  This project is an expressive python framework designed to process SimFin data into a flat CSV file for future analysis.
+The nice folks at [SimFin](https://simfin.com/) provide freely available fundamental financial data which also includes daily pricing data.  The data can be downloaded in bulk but also requires a bit of work to prepare the data.  This project is an expressive, python framework designed to process SimFin data into csv format for analysis.
 
 ### Installation
 
-Requirements
+Python requirements:
 
 * pandas
 * ta-lib
@@ -24,13 +24,13 @@ pip install loguru
 
 ### Usage
 
-First download the zipped SimFin [bulk dataset](https://simfin.com/data/access/download) and uncompress/move the csv file to the "simfin/data" directory.  Be sure to choose "Stock prices + Fundamentals (Detailed) Dataset" as well as "wide" format with "semilcolon" delimeter when downloading the dataset. The downloaded SimFin dataset should have the following path:
+First download the zipped SimFin [bulk dataset](https://simfin.com/data/access/download).  Be sure to choose "Stock prices + Fundamentals (Detailed) Dataset" as well as "wide" format with "semilcolon" delimeter when downloading the dataset.  Uncompress and move the csv file to the "simfin/data" directory:
 
 ```buildoutcfg
 simfin/simfin/data/output-semicolon-wide.csv
 ```
 
-An example run script is provided "run.py".  Change directory to the parent simfin folder and execute the "run.py" script (If you installed the required python packages in a virtual environment, be sure to activate it):
+An example script is provided "run.py".  Change directory to the parent simfin folder and execute the "run.py" script (If you installed the required python packages in a virtual environment, be sure to activate):
 ```buildoutcfg
 (simfin)$ python run.py
 ```
@@ -43,13 +43,14 @@ simfin = SimFin().extract().flatten().outliers().missing_rows().history().csv()
 
 ### Features
 
-Extract [SimFin bulk](https://simfin.com/data/access/api) data.   The bulk download simfin csv file requires [extraction](https://github.com/SimFin/bd-extractor) into a SimFinDataset. This dataset is enumerated into a sparse pandas dataframe (daily combined with quarterly data) using the extract() method.  Note, since this process is time consuming, the result is cached in the data folder to be used on the next invocation (remove the data/extract.zip file if starting over or new SimFin dataset):
+Extract [SimFin bulk](https://simfin.com/data/access/api) data.   The bulk download simfin csv file requires [extraction](https://github.com/SimFin/bd-extractor) into a SimFinDataset which is enumerated into a sparse pandas dataframe.  Note, since the extract method is time consuming, the result is cached in the data folder to be used on the next invocation (remove the data/extract.pkl file to reset):
 
 ```buildoutcfg
 extract()
 ```
 
-Flatten the dataframe into quarterly observations while preserving daily closing price history. The flatten() method calculates close monthly and quarterly averages and creates new features for 1, 2, 3, 6, 9 and 12 previous months and 1, 2, 3, 4, 5, 6, 8 and 12 quarters respectively. In addition to SimFin's ratios, a handful of other feature ratios are calculated. Note, since this process is time consuming, the result is cached in the data folder to be used on the next invocation (remove the data/flatten.zip file if starting over or new SimFin dataset)
+Flatten the dataframe into quarterly observations while preserving the daily closing price for quarter end. The flatten() method also calculates the previous average monthly
+and quarterly close as well as several momentum features for the previous year.  Note, since the flatten method is time consuming, the result is cached in the data folder to be used on the next invocation (remove the data/flatten.pkl file to reset)
 
 ```buildoutcfg
 flatten()
