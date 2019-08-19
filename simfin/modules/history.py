@@ -24,7 +24,7 @@ def by_ticker(df):
 
 class History:
     def history(self):
-        log.info("tting history ...")
+        log.info("Removing stocks without enough history ...")
         self.data_df = self.data_df.groupby('Ticker').apply(by_ticker)
         self.data_df.reset_index(drop=True, inplace=True)
         return self

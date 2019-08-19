@@ -1,16 +1,22 @@
+"""
+Step 1:  Extract simfin dataset (simfin format) into large (sparse) pandas dataframe.
+"""
+
+# Import required packages
 import pandas as pd
 from loguru import logger as log
 from modules.extractor import *
 import os
 
 
+# Extract simfin dataset
 def extract_bulk(csv_file):
 
     log.info("Loading bulk csv data set.  Be patient ...")
     dataSet = SimFinDataset(csv_file)
 
-    # Load dataSet into Df
-    log.info("Converting data set into flat data frame.  Be patient ...")
+    # Load dataSet into pandas data frame
+    log.info("Converting data set into data frame.  Be patient ...")
     data = pd.DataFrame()
     for i, company in enumerate(dataSet.companies):
         df = pd.DataFrame()
@@ -32,18 +38,24 @@ def extract_bulk(csv_file):
     return data[data['Ticker'].str.contains('^[A-Za-z]+$')]
 
 
+# Class to extract simfin data
 class Extract:
 
+    # Extract method to extract simfin data
     def extract(self):
 
         # Load previously saved DF if exists
         if not self.force and os.path.exists(self.extract_df_file):
             if os.path.exists(self.extract_df_file):
-                log.info("Loading saved extract data set ...")
+                log.info("Loading previously saved extracted data set ...")
                 self.extract_df = pd.read_pickle(self.extract_df_file)
                 self.data_df = self.extract_df
                 return self
 
+        # Extract simfin csv file
         self.data_df = extract_bulk(self.csv_file)
+
+        # extract_df_file is defined in sf.py where class is initiated
+        # save to pickle file (default tmp/extract.zip)
         self.data_df.to_pickle(self.extract_df_file)
 

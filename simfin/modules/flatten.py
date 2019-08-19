@@ -1,3 +1,6 @@
+"""
+Step 2: Flatten simfin data
+"""
 import talib
 import pandas as pd
 import numpy as np
@@ -8,7 +11,7 @@ from loguru import logger as log
 def by_ticker(df):
 
     ticker = str(df['Ticker'].iloc[0])
-    log.info("Flattening {} ...".format(ticker))
+    # log.info("Flattening {} ...".format(ticker))
 
     # Sort dataframe by date
     df = df.sort_values(by='Date')
@@ -90,7 +93,7 @@ class Flatten:
         # If empty bulk data, load previously saved or throw error
         if self.data_df.empty:
             if os.path.exists(self.extract_df_file):
-                log.info("Loading saved extract data set ...")
+                log.info("Loading previously saved extract data set ...")
                 self.extract_df = pd.read_pickle(self.extract_df_file)
                 self.data_df = self.extract_df
             else:

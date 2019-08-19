@@ -2,6 +2,7 @@ from decimal import Decimal
 from loguru import logger as log
 import numpy as np
 import pandas as pd
+np.warnings.filterwarnings('ignore')
 
 
 # Fix incorrect decimal placement
@@ -28,7 +29,7 @@ def removeOutliers(x, outlierConstant=25):
     quartileSet = (lower_quartile - IQR, upper_quartile + IQR)
     if IQR == 0:
         # Deal with missing row column
-        a = np.where((a >= -1 ) & (a <= 1), a, np.nan)
+        a = np.where((a >= -1) & (a <= 1), a, np.nan)
     else:
         a = np.where((a >= quartileSet[0]) & (a <= quartileSet[1]), a, np.nan)
     return a
@@ -36,7 +37,8 @@ def removeOutliers(x, outlierConstant=25):
 
 def by_ticker(df):
 
-    # ticker = str(df['Ticker'].iloc[0])
+    ticker = str(df['Ticker'].iloc[0])
+    # log.info(f"Ticker {ticker}")
 
     # Need to reset index to allow for concat below
     df = df.sort_values(by='Date').reset_index(drop=True)
@@ -66,7 +68,8 @@ class Outliers:
     def outliers(self):
         log.info("Remove outliers ...")
         self.data_df = self.data_df.groupby('Ticker').apply(by_ticker)
+        # df = data_df.groupby('Ticker').apply(by_ticker)
+
         self.data_df.reset_index(drop=True, inplace=True)
         return self
-
 

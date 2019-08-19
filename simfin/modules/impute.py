@@ -1,5 +1,4 @@
 from loguru import logger as log
-# from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer, MissingIndicator
 import pandas as pd
 import numpy as np
@@ -38,7 +37,9 @@ def by_ticker(df, indicate=False):
     # imputer = SimpleImputer(strategy="median")
     # imputer.fit(X)
     # X = imputer.transform(X)
-    X = KNN(k=5).fit_transform(X)
+
+    if X.isnull().values.any():
+        X = KNN(k=5, verbose=False).fit_transform(X)
 
     X = X.astype(np.float64)
     X = pd.DataFrame(X)
@@ -59,7 +60,7 @@ class Impute:
 
         self.data_df = self.data_df.groupby('Ticker').apply(by_ticker, indicate)
 
-        # Features per ticker which are all NAN, we can't impute, so give a value out of range
+        # Missing field indicators (replace NANs with number out of range
         self.data_df = self.data_df.fillna(-99999)
 
         # If Target in df and it had nans, replace back to nans
