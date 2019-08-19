@@ -1,5 +1,3 @@
-# UNDER CONSTRUCTION - ALPHA STATUS!
-
 ### SimFin
 
 The nice folks at [SimFin](https://simfin.com/) provide freely available fundamental financial data which also includes daily pricing data.  The information can be downloaded in bulk but also requires a bit of work to prepare the data for analysis.  This project is an expressive python framework designed to process SimFin data into a flat CSV file for future analysis.
