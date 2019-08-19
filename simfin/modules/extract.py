@@ -59,3 +59,5 @@ class Extract:
         # save to pickle file (default tmp/extract.zip)
         self.data_df.to_pickle(self.extract_df_file)
 
+        return self
+

@@ -29,8 +29,8 @@ class SimFin(flatten.Flatten,
         self.models = []
         self.data_df = pd.DataFrame
         self.csv_file = os.path.join(self.data_dir, csv_file)
-        self.extract_df_file = os.path.join(self.tmp_dir, 'extract.zip')
-        self.flatten_df_file = os.path.join(self.tmp_dir, 'flatten.zip')
+        self.extract_df_file = os.path.join(self.tmp_dir, 'extract.pkl')
+        self.flatten_df_file = os.path.join(self.tmp_dir, 'flatten.pkl')
 
     def csv(self, file_name='data.csv'):
         path = os.path.join('data', file_name)
