@@ -43,13 +43,13 @@ simfin = SimFin().extract().flatten().outliers().missing_rows().history().csv()
 
 ### Features
 
-Extract [SimFin bulk](https://simfin.com/data/access/api) data.   The bulk download simfin csv file requires [extraction](https://github.com/SimFin/bd-extractor) into a SimFinDataset. This dataset is enumerated into a sparse pandas dataframe (daily combined with quarterly data) using the extract() method.  Note, since this process is time consuming, the result is cached in the tmp folder to be used on the next invocation (remove the tmp/extract.zip file if starting over or new SimFin dataset):
+Extract [SimFin bulk](https://simfin.com/data/access/api) data.   The bulk download simfin csv file requires [extraction](https://github.com/SimFin/bd-extractor) into a SimFinDataset. This dataset is enumerated into a sparse pandas dataframe (daily combined with quarterly data) using the extract() method.  Note, since this process is time consuming, the result is cached in the data folder to be used on the next invocation (remove the data/extract.zip file if starting over or new SimFin dataset):
 
 ```buildoutcfg
 extract()
 ```
 
-Flatten the dataframe into quarterly observations while preserving daily closing price history. The flatten() method calculates close monthly and quarterly averages and creates new features for 1, 2, 3, 6, 9 and 12 previous months and 1, 2, 3, 4, 5, 6, 8 and 12 quarters respectively. In addition to SimFin's ratios, a handful of other feature ratios are calculated. Note, since this process is time consuming, the result is cached in the tmp folder to be used on the next invocation (remove the tmp/flatten.zip file if starting over or new SimFin dataset)
+Flatten the dataframe into quarterly observations while preserving daily closing price history. The flatten() method calculates close monthly and quarterly averages and creates new features for 1, 2, 3, 6, 9 and 12 previous months and 1, 2, 3, 4, 5, 6, 8 and 12 quarters respectively. In addition to SimFin's ratios, a handful of other feature ratios are calculated. Note, since this process is time consuming, the result is cached in the data folder to be used on the next invocation (remove the data/flatten.zip file if starting over or new SimFin dataset)
 
 ```buildoutcfg
 flatten()

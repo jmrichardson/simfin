@@ -23,7 +23,7 @@ class SimFin(flatten.Flatten,
 
     def __init__(self):
         self.force = force
-        self.tmp_dir = 'tmp'
+        self.tmp_dir = 'data'
         self.data_dir = 'data'
         self.process_list = []
         self.models = []
@@ -35,7 +35,7 @@ class SimFin(flatten.Flatten,
     def csv(self, file_name='data.csv'):
         path = os.path.join('data', file_name)
         log.info("Writing csv file: {}".format(path))
-        self.data_df.to_csv(path)
+        self.data_df.to_csv(path, index=False)
         return self
 
     def query(self, tickers):
@@ -43,12 +43,12 @@ class SimFin(flatten.Flatten,
         self.data_df = self.data_df[self.data_df['Ticker'].isin(tickers)]
         return self
 
-    def save(self, path=os.path.join('tmp', 'simfin')):
+    def save(self, path=os.path.join('data', 'simfin')):
         log.info(f"Saving to {path} ...")
         pickle.dump(self, open(path, "wb"))
         return self
 
-    def load(self, path=os.path.join('tmp', 'simfin')):
+    def load(self, path=os.path.join('data', 'simfin')):
         if os.path.exists(path):
             log.info(f"Loading cache from {path} ...")
             return pickle.load(open(path, "rb"))
