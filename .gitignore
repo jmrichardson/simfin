@@ -122,3 +122,4 @@ tmp/
 *.ftr
 *.tmp
 catboost_info/
+*.pkl

@@ -14,11 +14,18 @@ def by_ticker(df):
     end_date = df['Date'].iloc[-1]
     days = (end_date - start_date).days
 
-    # Require 4 years of data
+    # Require minimum number of quarter history
     if days <= 90 * min_quarters:
         # log.warning("Not enough history")
         return pd.DataFrame()
 
+    # Must also require >X rows of non missing data
+    if 'Missing_Row' in df.columns:
+        total_rows = len(df)
+        missing_rows = df['Missing_Row'].sum()
+        quarters = total_rows - missing_rows
+        if quarters < min_quarters:
+            return pd.DataFrame()
     return df
 
 
