@@ -1,6 +1,6 @@
 ### SimFin
 
-The nice folks at [SimFin](https://simfin.com/) provide freely available fundamental financial data which also includes daily pricing data.  The data can be downloaded in bulk but also requires a bit of work to prepare the data.  This project is an expressive, python framework designed to process SimFin data into csv format for analysis.
+The nice folks at [SimFin](https://simfin.com/) provide freely available fundamental financial data which also includes daily pricing data.  The data can be downloaded in bulk but also requires a bit of work to prepare the data in table format.  This project is an expressive, python framework designed to process SimFin data into csv format for analysis.
 
 ### Installation
 
@@ -11,7 +11,24 @@ Python requirements:
 * loguru
 * fancyimpute
 
-Example installation in conda virtual environment:
+Example Ubuntu/Linux Installation:
+
+```buildoutcfg
+sudo apt update
+sudo apt install build-essential
+wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
+sudo ./configure
+sudo make
+sudo make install
+pip install ta-lib
+pip install pandas
+pip install fancyimpute
+pip install loguru
+git clone https://github.com/jmrichardson/simfin
+cd simfin
+```
+
+Example Windows installation in Anaconda virtual environment:
 
 ```buildoutcfg
 conda create -n simfin python=3.6
@@ -20,19 +37,21 @@ conda install -y -c masdeseiscaracteres ta-lib
 pip install pandas
 pip install fancyimpute
 pip install loguru
+git clone https://github.com/jmrichardson/simfin
+cd simfin
 ```
 
 ### Usage
 
-First download the zipped SimFin [bulk dataset](https://simfin.com/data/access/download).  Be sure to choose "Stock prices + Fundamentals (Detailed) Dataset" as well as "wide" format with "semilcolon" delimeter when downloading the dataset.  Uncompress and move the csv file to the "simfin/data" directory:
+First download the zipped SimFin [bulk dataset](https://simfin.com/data/access/download).  Be sure to choose "Stock prices + Fundamentals (Detailed) Dataset" as well as "wide" format with "semilcolon" delimeter before downloading.  Uncompress and move the SimFin csv file to the "simfin/data" directory:
 
 ```buildoutcfg
 simfin/simfin/data/output-semicolon-wide.csv
 ```
 
-An example script is provided "run.py".  Change directory to the parent simfin folder and execute the "run.py" script (If you installed the required python packages in a virtual environment, be sure to activate):
+An example script is provided "run.py".  Change directory to the parent simfin folder and execute the "run.py" script:
 ```buildoutcfg
-(simfin)$ python run.py
+$ python run.py
 ```
 
 By default, the "run.py" script will extract the simfin dataset, flatten it into quarters with respect to daily data, remove outliers, add missing quarterly rows, remove stocks with less than 4 years history, and save the result to "data/data.csv":
