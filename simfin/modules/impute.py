@@ -1,5 +1,5 @@
 from loguru import logger as log
-from sklearn.impute import SimpleImputer, MissingIndicator
+from sklearn.impute import MissingIndicator
 import pandas as pd
 import numpy as np
 from fancyimpute import KNN
