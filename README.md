@@ -1,6 +1,6 @@
 ### SimFin
 
-The nice folks at [SimFin](https://simfin.com/) provide freely available fundamental financial data which also includes daily pricing data.  The data can be downloaded in bulk but also requires a bit of work to prepare the data in table format.  This project is an expressive, python framework designed to process SimFin data into csv format for future analysis.  Specifically, it transforms the simfin bulk data set into quarterly table/csv format combined with most recent daily pricing data (including trailing momentum).
+The nice folks at [SimFin](https://simfin.com/) provide freely available fundamental financial data which also includes daily pricing data.  The data can be downloaded in bulk but also requires a bit of work to prepare the data in table format (pandas/csv) for scientific analysis.  This project is an expressive, python framework designed to process SimFin data into csv format for future analysis.  Specifically, it transforms the simfin bulk data set into quarterly table/csv format combined with most recent daily pricing data (including trailing momentum).
 
 ### Installation
 
