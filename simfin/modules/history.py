@@ -26,6 +26,9 @@ def by_ticker(df):
         quarters = total_rows - missing_rows
         if quarters < min_quarters:
             return pd.DataFrame()
+    elif len(df) < min_quarters:
+        return pd.DataFrame()
+
     return df
 
 

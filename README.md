@@ -54,10 +54,10 @@ An example script is provided "run.py".  Change directory to the parent simfin f
 $ python run.py
 ```
 
-By default, the "run.py" script will extract the simfin dataset, flatten it into quarters with respect to daily data, remove outliers, add missing quarterly rows, remove stocks with less than 4 years history, and save the result to "data/data.csv":
+By default, the "run.py" script will extract the simfin dataset, flatten it into quarters with respect to daily data, remove outliers, add missing quarterly rows, remove stocks with less than 4 years history, and save the result to "data/simfin.csv":
 ```buildoutcfg
 from simfin import *
-simfin = SimFin().extract().flatten().outliers().missing_rows().history().csv()
+SimFin().extract().flatten().outliers().missing_rows().history().csv()
 ```
 
 ### Features

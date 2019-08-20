@@ -84,7 +84,7 @@ class Flatten:
     def flatten(self):
 
         # Load previously saved DF if exists
-        if not self.force and os.path.exists(self.flatten_df_file):
+        if os.path.exists(self.flatten_df_file):
             log.info("Loading saved flattened data set ...")
             self.flatten_df = pd.read_pickle(self.flatten_df_file)
             self.data_df = self.flatten_df

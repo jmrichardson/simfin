@@ -22,7 +22,6 @@ class SimFin(flatten.Flatten,
              extract.Extract):
 
     def __init__(self):
-        self.force = force
         self.tmp_dir = 'data'
         self.data_dir = 'data'
         self.process_list = []
@@ -32,8 +31,8 @@ class SimFin(flatten.Flatten,
         self.extract_df_file = os.path.join(self.tmp_dir, 'extract.pkl')
         self.flatten_df_file = os.path.join(self.tmp_dir, 'flatten.pkl')
 
-    def csv(self, file_name='data.csv'):
-        path = os.path.join('data', file_name)
+    def csv(self):
+        path = os.path.join('data', out_csv_file)
         log.info("Writing csv file: {}".format(path))
         self.data_df.to_csv(path, index=False)
         return self

@@ -66,7 +66,7 @@ def by_ticker(df):
 class Outliers:
 
     def outliers(self):
-        log.info("Remove outliers ...")
+        log.info("Removing outliers ...")
         self.data_df = self.data_df.groupby('Ticker').apply(by_ticker)
         # df = data_df.groupby('Ticker').apply(by_ticker)
 

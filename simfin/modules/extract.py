@@ -45,7 +45,7 @@ class Extract:
     def extract(self):
 
         # Load previously saved DF if exists
-        if not self.force and os.path.exists(self.extract_df_file):
+        if os.path.exists(self.extract_df_file):
             if os.path.exists(self.extract_df_file):
                 log.info("Loading previously saved extracted data set ...")
                 self.extract_df = pd.read_pickle(self.extract_df_file)
