@@ -49,15 +49,9 @@ First download the zipped SimFin [bulk dataset](https://simfin.com/data/access/d
 simfin/simfin/data/output-semicolon-wide.csv
 ```
 
-An example script is provided "run.py".  Change directory to the parent simfin folder and execute the "run.py" script:
+An example script is provided "run.py".  Change directory to the parent simfin folder and execute the "run.py" script. This will extract the simfin dataset, flatten it into quarters with respect to daily data, remove outliers, add missing quarterly rows, remove stocks with less than 4 years history, and save the result to "data/simfin.csv"::
 ```buildoutcfg
 $ python run.py
-```
-
-By default, the "run.py" script will extract the simfin dataset, flatten it into quarters with respect to daily data, remove outliers, add missing quarterly rows, remove stocks with less than 4 years history, and save the result to "data/simfin.csv":
-```buildoutcfg
-from simfin import *
-SimFin().extract().flatten().outliers().missing_rows().history().csv()
 ```
 
 ### Features
