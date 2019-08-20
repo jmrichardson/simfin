@@ -99,7 +99,7 @@ class Flatten:
             else:
                 raise Exception("No extracted data set.  Run method extract()")
 
-        log.info("Flattening SimFin data set into quarterly ...")
+        log.info("Flattening SimFin data set ...")
         self.data_df = self.data_df.groupby('Ticker').apply(by_ticker)
         self.data_df.reset_index(drop=True, inplace=True)
         self.data_df = self.data_df.replace([np.inf, -np.inf], np.nan)

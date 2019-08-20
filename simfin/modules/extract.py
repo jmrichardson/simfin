@@ -12,11 +12,11 @@ import os
 # Extract simfin dataset
 def extract_bulk(csv_file):
 
-    log.info("Loading bulk csv data set.  Be patient ...")
+    log.info("Loading bulk csv data set ...")
     dataSet = SimFinDataset(csv_file)
 
     # Load dataSet into pandas data frame
-    log.info("Converting data set into data frame.  Be patient ...")
+    log.info("Converting data set into data frame...")
     data = pd.DataFrame()
     for i, company in enumerate(dataSet.companies):
         df = pd.DataFrame()
