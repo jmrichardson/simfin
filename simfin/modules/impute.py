@@ -3,6 +3,7 @@ from sklearn.impute import MissingIndicator
 import pandas as pd
 import numpy as np
 from fancyimpute import KNN
+from config import *
 
 # Check for missing quarters, insert null row and column
 def by_ticker(df, indicate=False):
@@ -29,10 +30,11 @@ def by_ticker(df, indicate=False):
     # Dataframe to track missing values
     # X_missing = pd.DataFrame()
 
-    missing = MissingIndicator(features='all')
-    missing.fit(X)
-    X_missing = pd.DataFrame(missing.transform(X)).astype(float)
-    X_missing.columns = "Missing_" + col_names
+    if missing_impute:
+        missing = MissingIndicator(features='all')
+        missing.fit(X)
+        X_missing = pd.DataFrame(missing.transform(X)).astype(float)
+        X_missing.columns = "Missing_" + col_names
 
     # imputer = SimpleImputer(strategy="median")
     # imputer.fit(X)
@@ -46,7 +48,10 @@ def by_ticker(df, indicate=False):
     X.columns = col_names
 
     # df = pd.concat([index, X, X_missing, y], axis=1)
-    df = pd.concat([index, X, X_missing], axis=1)
+    if missing_impute:
+        df = pd.concat([index, X, X_missing], axis=1)
+    else:
+        df = pd.concat([index, X], axis=1)
     return df
 
 

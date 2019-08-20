@@ -8,3 +8,6 @@ out_csv_file = "simfin.csv"
 
 # Remove stocks with less than min_quarters of data
 min_quarters = 16
+
+# Include missing indicators for impute
+missing_impute = False
